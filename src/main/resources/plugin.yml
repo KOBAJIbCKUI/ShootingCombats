@@ -1,0 +1,3 @@
+name: ShootingCombats
+version: '${project.version}'
+main: org.shootingcombats.shootingcombats.ShootingCombats
