@@ -13,6 +13,10 @@ import java.util.logging.Logger;
 public class Util {
     private static final Logger LOGGER = Bukkit.getLogger();
 
+    private Util() {
+        throw new AssertionError("Instantiation of utility class");
+    }
+
     public static void log(String message) {
         sendMessage(Bukkit.getConsoleSender(),"[ShootingCombats] " + message);
         //LOGGER.log(Level.INFO, "[ShootingCombats] INFO: " + message);
