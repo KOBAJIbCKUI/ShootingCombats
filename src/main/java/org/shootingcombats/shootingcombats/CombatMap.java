@@ -2,7 +2,6 @@ package org.shootingcombats.shootingcombats;
 
 import org.bukkit.Location;
 
-import java.util.Collection;
 import java.util.List;
 
 public interface CombatMap {

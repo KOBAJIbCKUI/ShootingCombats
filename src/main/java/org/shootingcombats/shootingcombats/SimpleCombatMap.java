@@ -3,8 +3,6 @@ package org.shootingcombats.shootingcombats;
 import org.bukkit.Location;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 public final class SimpleCombatMap implements CombatMap {

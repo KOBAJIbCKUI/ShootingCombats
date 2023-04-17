@@ -7,7 +7,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-public class CombatPlayerData extends CombatData {
+public final class CombatPlayerData extends CombatData {
 
     private final Set<UUID> players, spectators;
 

@@ -1,12 +1,20 @@
 package org.shootingcombats.shootingcombats;
 
-import java.util.UUID;
+import org.bukkit.Location;
+
+import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
 public interface Lobby {
     String getName();
     String getType();
+    void setOwner(UUID uuid);
+    UUID getOwner();
+    void setLobbySpawn(Location location);
+    Location getLobbySpawn();
+    void setProperty(String property, String value);
+    Optional<String> getProperty(String property);
+    boolean containsProperty(String property);
     void joinLobby(UUID uuid);
     void leaveLobby(UUID uuid);
     void setPlayerReady(UUID uuid);
@@ -16,13 +24,19 @@ public interface Lobby {
     void setMaxPlayers(int number);
     int getMinPlayers();
     int getMaxPlayers();
-    void setTimeMinutes(int timeInTimeUnits);
-    long getTimeMinutes();
+    void addCombatMap(CombatMap combatMap);
+    boolean containsCombatMap(CombatMap combatMap);
+    void removeCombatMap(CombatMap combatMap);
+    void removeCombatMap(int index);
+    Collection<CombatMap> getCombatMaps();
+    int getCombatMapsNumber();
+    void setCombatDuration(TimeUnit timeUnit, long timeInTimeUnits);
+    long getCombatDuration(TimeUnit timeUnit);
+    LobbyStatus getLobbyStatus();
+    void setLobbyStatus(LobbyStatus lobbyStatus);
+    boolean isInLobby(UUID uuid);
     Combat getCurrentCombat();
-    Combat createCombat();
-    void addPreCombatAction(Consumer<Lobby> consumer);
-    void addInnerCombatAction(Consumer<Lobby> consumer);
-    void addPostCombatAction(Consumer<Lobby> consumer);
+    void startCombat(CombatMap combatMap);
 
     enum LobbyStatus {
         READY,
