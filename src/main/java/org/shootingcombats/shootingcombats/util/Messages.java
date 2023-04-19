@@ -11,7 +11,7 @@ public class Messages {
     public static final String BATTLE_WON = "" + ChatColor.GREEN + ChatColor.BOLD + " won the battle!";
     public static final String ROUND_DRAW = "" + ChatColor.GRAY + ChatColor.BOLD + "Battle draw!";
     public static final String BATTLE_STOPPED = "" + ChatColor.BLUE + ChatColor.BOLD + "Battle stopped!";
-    public static final String KILLER_REWARD = "" + ChatColor.GOLD + ChatColor.BOLD + " %s and got " + ChatColor.AQUA + ChatColor.BOLD + "%d diamonds";
+    public static final String KILLER_REWARD = "" + ChatColor.GOLD + ChatColor.BOLD + "You've killed %d players and got " + ChatColor.AQUA + ChatColor.BOLD + "%d diamonds";
     public static final String KILLER_KILLSTREAK_REWARD = "" + ChatColor.GOLD + ChatColor.BOLD + " %s with killstreak and got " + ChatColor.AQUA + ChatColor.BOLD + "%d diamonds";
     public static final String YOU_KILLED = "" + ChatColor.GOLD + ChatColor.BOLD + "You've killed:";
     public static final String WINNER_REWARD = "" + ChatColor.GOLD + ChatColor.BOLD + "You've won the battle and got " + ChatColor.AQUA + ChatColor.BOLD + "%d diamonds";
