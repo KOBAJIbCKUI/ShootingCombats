@@ -8,10 +8,8 @@ import java.util.List;
 public final class SimpleCombatMap implements CombatMap {
 
     private final List<Location> spawns;
-
-    private final String name;
-
-    private final Bound bound;
+    private Bound bound;
+    private String name;
 
     public SimpleCombatMap(String name, Bound bound) {
         this.name = name;
@@ -23,6 +21,11 @@ public final class SimpleCombatMap implements CombatMap {
     @Override
     public String getName() {
         return this.name;
+    }
+
+    @Override
+    public void setName(String name) {
+        this.name = name;
     }
 
     @Override
@@ -65,6 +68,11 @@ public final class SimpleCombatMap implements CombatMap {
     @Override
     public Bound getBound() {
         return this.bound;
+    }
+
+    @Override
+    public void setBound(Bound bound) {
+        this.bound = bound;
     }
 
     @Override
