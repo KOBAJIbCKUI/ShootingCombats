@@ -2,6 +2,8 @@ package org.shootingcombats.shootingcombats;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.shootingcombats.shootingcombats.util.TypedProperty;
+import org.shootingcombats.shootingcombats.util.TypedPropertyImpl;
 import org.shootingcombats.shootingcombats.util.Util;
 
 import java.util.*;
@@ -9,7 +11,7 @@ import java.util.concurrent.TimeUnit;
 
 public final class SimpleLobby implements Lobby {
 
-    private final Map<String, String> lobbyProperties;
+    private final Map<String, TypedProperty> lobbyProperties;
     private final Map<UUID, PlayerStatus> players;
     private final List<CombatMap> combatMaps;
     private final String name, type;
@@ -75,14 +77,14 @@ public final class SimpleLobby implements Lobby {
     }
 
     @Override
-    public void setProperty(String property, String value) {
+    public void setProperty(String property, TypedProperty value) {
         if (lobbyProperties.containsKey(property)) {
             lobbyProperties.put(property, value);
         }
     }
 
     @Override
-    public Optional<String> getProperty(String property) {
+    public Optional<TypedProperty> getProperty(String property) {
         return Optional.ofNullable(lobbyProperties.get(property));
     }
 
@@ -235,10 +237,10 @@ public final class SimpleLobby implements Lobby {
 
     private void setupProperties() {
         //TODO: put values from config
-        lobbyProperties.put("final-teleport", "false");
-        lobbyProperties.put("spectate-after-death", "true");
-        lobbyProperties.put("endgame-tags", "true");
-        lobbyProperties.put("final-map", "null");
+        lobbyProperties.put("final-teleport", new TypedPropertyImpl(true));
+        lobbyProperties.put("spectate-after-death", new TypedPropertyImpl(true));
+        lobbyProperties.put("endgame-tags", new TypedPropertyImpl(true));
+        lobbyProperties.put("final-map", new TypedPropertyImpl("null"));
     }
 
     private void checkStatus() {

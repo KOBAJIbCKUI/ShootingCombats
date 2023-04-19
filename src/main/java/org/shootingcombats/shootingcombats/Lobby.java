@@ -1,6 +1,8 @@
 package org.shootingcombats.shootingcombats;
 
 import org.bukkit.Location;
+import org.shootingcombats.shootingcombats.util.TypedProperty;
+import org.shootingcombats.shootingcombats.util.TypedPropertyImpl;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -12,8 +14,8 @@ public interface Lobby {
     UUID getOwner();
     void setLobbySpawn(Location location);
     Location getLobbySpawn();
-    void setProperty(String property, String value);
-    Optional<String> getProperty(String property);
+    void setProperty(String property, TypedProperty value);
+    Optional<TypedProperty> getProperty(String property);
     boolean containsProperty(String property);
     void joinLobby(UUID uuid);
     void leaveLobby(UUID uuid);

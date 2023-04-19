@@ -1,35 +1,45 @@
 package org.shootingcombats.shootingcombats;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.shootingcombats.shootingcombats.data.CombatPlayerData;
+import org.shootingcombats.shootingcombats.util.Messages;
+import org.shootingcombats.shootingcombats.util.TypedProperty;
 import org.shootingcombats.shootingcombats.util.Util;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class DeathmatchCombat implements Combat {
-
-    private final Set<UUID> players;
-    private final Set<UUID> spectators;
-    private final Map<String, String> combatProperties;
+    private final Map<String, TypedProperty> combatProperties;
     private final CombatMap combatMap, finalCombatMap;
     private final long minutesToEnd;
+    private final CombatPlayerData combatPlayerData;
     private final Lobby lobby;
 
-    public DeathmatchCombat(Lobby lobby, Set<UUID> players, long minutesToEnd, Map<String, String> properties, CombatMap combatMap) {
+    private final BukkitRunnable countdownRunnable, combatRunnable;
+
+    public DeathmatchCombat(Lobby lobby, Set<UUID> players, long minutesToEnd, Map<String, TypedProperty> properties, CombatMap combatMap) {
         this(lobby, players, minutesToEnd, properties, combatMap, null);
     }
 
-    public DeathmatchCombat(Lobby lobby, Set<UUID> players, long minutesToEnd, Map<String, String> properties, CombatMap combatMap, CombatMap finalCombatMap) {
+    public DeathmatchCombat(Lobby lobby, Set<UUID> players, long minutesToEnd, Map<String, TypedProperty> properties, CombatMap combatMap, CombatMap finalCombatMap) {
         this.lobby = lobby;
         this.combatMap = new SimpleCombatMap(combatMap.getName(), combatMap.getBound());
         this.finalCombatMap = finalCombatMap != null ? new SimpleCombatMap(finalCombatMap.getName(), finalCombatMap.getBound()) : null;
         this.minutesToEnd = minutesToEnd;
         this.combatProperties = properties;
 
-        this.players = new HashSet<>(players);
-        this.spectators = new HashSet<>();
+        this.combatPlayerData = new CombatPlayerData(this);
+        for (UUID uuid : players) {
+            combatPlayerData.addPlayer(uuid);
+        }
 
+        this.countdownRunnable = new CountdownThread(5);
+        this.combatRunnable = new CombatThread(TimeUnit.MINUTES.toSeconds(minutesToEnd - 5), TimeUnit.MINUTES.toSeconds(minutesToEnd - 1), TimeUnit.MINUTES.toSeconds(minutesToEnd));
     }
+
     @Override
     public void joinAsPlayer(UUID uuid) {
         throw new UnsupportedOperationException("Combat doesn't support joins");
@@ -37,27 +47,32 @@ public class DeathmatchCombat implements Combat {
 
     @Override
     public void leaveAsPlayer(UUID uuid) {
-        players.remove(uuid);
+        this.combatPlayerData.removePlayer(uuid);
     }
 
     @Override
     public void joinAsSpectator(UUID uuid) {
-        spectators.add(uuid);
+        this.combatPlayerData.addSpectator(uuid);
     }
 
     @Override
     public void leaveAsSpectator(UUID uuid) {
-        spectators.remove(uuid);
+        this.combatPlayerData.removeSpectator(uuid);
     }
 
     @Override
     public Set<UUID> getPlayers() {
-        return Collections.unmodifiableSet(players);
+        return combatPlayerData.getPlayers().keySet();
     }
 
     @Override
     public Set<UUID> getSpectators() {
-        return Collections.unmodifiableSet(spectators);
+        return combatPlayerData.getSpectators();
+    }
+
+    @Override
+    public CombatMap getCombatMap() {
+        return this.combatMap;
     }
 
     @Override
@@ -72,7 +87,7 @@ public class DeathmatchCombat implements Combat {
 
     @Override
     public void start() {
-
+        startCountdown();
     }
 
     @Override
@@ -82,15 +97,26 @@ public class DeathmatchCombat implements Combat {
 
     @Override
     public void normalStop() {
-
+        Set<UUID> players = combatPlayerData.getPlayers().keySet();
+        Set<UUID> spectators = combatPlayerData.getSpectators();
+        if (players.size() != 1) {
+            Util.sendTitle(players, Messages.ROUND_DRAW);
+            Util.sendTitle(spectators, Messages.ROUND_DRAW);
+        } else {
+            Util.sendTitle(players, "" + ChatColor.BOLD + ChatColor.RED + players, Messages.BATTLE_WON);
+        }
     }
 
     private void startCountdown() {
-
+        this.countdownRunnable.runTaskTimer(ShootingCombats.getPlugin(), 0, 1 * 20);
     }
 
     private void startMainCombat() {
-
+        Util.sendTitle(combatPlayerData.getPlayers().keySet(), Messages.BATTLE_HAS_BEGUN);
+        Util.sendMessage(combatPlayerData.getSpectators(), String.format(Messages.MINUTES_TO_END, minutesToEnd));
+        Util.sendTitle(combatPlayerData.getPlayers().keySet(), Messages.BATTLE_HAS_BEGUN);
+        Util.sendMessage(combatPlayerData.getSpectators(), String.format(Messages.MINUTES_TO_END, minutesToEnd));
+        this.combatRunnable.runTask(ShootingCombats.getPlugin());
     }
 
     private void startFinalCombat() {
@@ -98,10 +124,7 @@ public class DeathmatchCombat implements Combat {
     }
 
 
-
-    private class CombatThread implements Runnable {
-        private final int id;
-
+    private class CombatThread extends BukkitRunnable {
         private long secondsLeft;
         private final long secondsToTags;
         private final long secondsToFinalCombat;
@@ -109,8 +132,7 @@ public class DeathmatchCombat implements Combat {
         private boolean tagsShown;
         private boolean finalCombatStarted;
 
-        public CombatThread(int id, long secondsToTags, long secondsToFinalCombat, long secondsToEnd) {
-            this.id = id;
+        public CombatThread(long secondsToTags, long secondsToFinalCombat, long secondsToEnd) {
             this.secondsLeft = 0;
             this.secondsToTags = secondsToTags;
             this.secondsToFinalCombat = secondsToFinalCombat;
@@ -121,59 +143,51 @@ public class DeathmatchCombat implements Combat {
 
         @Override
         public void run() {
-//            if (lobby.getCurrentCombat() == null || lobby.getLobbyStatus() != Lobby.LobbyStatus.RUNNING) {
-//                stop();
-//                return;
-//            }
             secondsLeft += 10;
             //shootingBattle.getLobby().getBarData().updateBar(remainingTime - timer);
             //TODO: get values from config
-            if (!tagsShown && secondsLeft >= secondsToTags && "true".equals(combatProperties.getOrDefault("endgame-tags", "true"))) {
+            if (!tagsShown && secondsLeft >= secondsToTags && combatProperties.get("endgame-tags").getValue(Boolean.class).orElse(true)) {
                 this.tagsShown = true;
                 //Bukkit.getPluginManager().callEvent(new ShowNameTagsEvent(shootingBattle));
-                //Util.sendMessage(shootingBattle.getBattlePlayerData().getAllPlayers(), String.format(Messages.MINUTES_TO_END, (this.remainingTime - this.showNameTagsTime) / 60));
-                //Util.sendMessage(shootingBattle.getBattlePlayerData().getAllPlayers(), Messages.PLAYERS_VISIBLE);
-            } else if (!finalCombatStarted && secondsLeft >= secondsToFinalCombat && "true".equals(combatProperties.getOrDefault("final-teleport", "true"))) {
+                Util.sendMessage(combatPlayerData.getPlayers().keySet(), String.format(Messages.MINUTES_TO_END, (secondsToEnd - secondsToTags) / 60));
+                Util.sendMessage(combatPlayerData.getPlayers().keySet(), Messages.PLAYERS_VISIBLE);
+                Util.sendMessage(combatPlayerData.getSpectators(), String.format(Messages.MINUTES_TO_END, (secondsToEnd - secondsToTags) / 60));
+                Util.sendMessage(combatPlayerData.getSpectators(), Messages.PLAYERS_VISIBLE);
+            }
+            if (finalCombatMap != null && !finalCombatStarted && secondsLeft >= secondsToFinalCombat && combatProperties.get("final-teleport").getValue(Boolean.class).orElse(true)) {
                 finalCombatStarted = true;
                 startFinalCombat();
-                //if (shootingBattle.getLobby().isTeleportToGulag()) {
-                //    shootingBattle.startGulag();
-                //    Util.sendTitle(shootingBattle.getBattlePlayerData().getPlayers(), Messages.WELCOME_TO_GULAG, Messages.TRAITORS);
-                //}
+                Util.sendTitle(combatPlayerData.getPlayers().keySet(), Messages.WELCOME_TO_GULAG, Messages.TRAITORS);
+                Util.sendTitle(combatPlayerData.getSpectators(), Messages.WELCOME_TO_GULAG, Messages.TRAITORS);
+            }
+            if (secondsLeft >= secondsToFinalCombat) {
                 //shootingBattle.getLobby().getBarData().prepareForGulag(false);
-                //Util.sendMessage(shootingBattle.getBattlePlayerData().getAllPlayers(), Messages.MINUTE_TO_END);
-            } else if (secondsLeft >= secondsToEnd) {
+                Util.sendMessage(combatPlayerData.getPlayers().keySet(), Messages.MINUTE_TO_END);
+                Util.sendMessage(combatPlayerData.getSpectators(), Messages.MINUTE_TO_END);
+            }
+            if (secondsLeft >= secondsToEnd) {
                 normalStop();
             }
         }
-
-        public void stop() {
-            Bukkit.getScheduler().cancelTask(id);
-        }
     }
 
-    private class CountdownThread implements Runnable {
-        private final int id;
+    private class CountdownThread extends BukkitRunnable {
         private int countdownSeconds;
 
-        public CountdownThread(int id, int countdownSeconds) {
-            this.id = id;
+        public CountdownThread(int countdownSeconds) {
             this.countdownSeconds = countdownSeconds;
         }
 
         @Override
         public void run() {
             if (countdownSeconds <= 0) {
-                stop();
                 startMainCombat();
+                cancel();
             } else {
-                //Util.sendMessage(shootingBattle.getBattlePlayerData().getAllPlayers(), String.format(Messages.BATTLE_STARTS_IN, timer));
+                Util.sendMessage(combatPlayerData.getPlayers().keySet(), String.format(Messages.BATTLE_STARTS_IN, countdownSeconds));
+                Util.sendMessage(combatPlayerData.getSpectators(), String.format(Messages.BATTLE_STARTS_IN, countdownSeconds));
             }
             countdownSeconds--;
-        }
-
-        public void stop() {
-            Bukkit.getScheduler().cancelTask(id);
         }
     }
 }

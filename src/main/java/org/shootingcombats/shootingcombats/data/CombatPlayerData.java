@@ -2,48 +2,60 @@ package org.shootingcombats.shootingcombats.data;
 
 import org.shootingcombats.shootingcombats.Combat;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 public final class CombatPlayerData extends CombatData {
 
-    private final Set<UUID> players, spectators;
+    private final Set<UUID> spectators;
+    private final Map<UUID, PlayerStatus> players;
+    private final Map<UUID, Integer> kills;
 
-    public CombatPlayerData(Combat combat, Set<UUID> players) {
-        this(combat, players, new HashSet<>());
-    }
-
-    public CombatPlayerData(Combat combat, Set<UUID> players, Set<UUID> spectators) {
+    public CombatPlayerData(Combat combat) {
         super(combat);
-        this.players = players;
-        this.spectators = spectators;
+        this.spectators = new HashSet<>();
+        this.players = new HashMap<>();
+        this.kills = new HashMap<>();
     }
 
-    public Set<UUID> getPlayers() {
-        return Collections.unmodifiableSet(players);
+    public Map<UUID, PlayerStatus> getPlayers() {
+        return Collections.unmodifiableMap(players);
     }
 
     public Set<UUID> getSpectators() {
         return Collections.unmodifiableSet(spectators);
     }
 
-    public boolean addSpectator(UUID uuid) {
-        return spectators.add(uuid);
+    public void addKill(UUID uuid) {
+        addKill(uuid, 1);
     }
 
-    public boolean removeSpectator(UUID uuid) {
-        return spectators.remove(uuid);
+    public void addKill(UUID uuid, Integer numberOfKills) {
+        kills.put(uuid, kills.get(uuid) + numberOfKills);
     }
 
-    public boolean addPlayer(UUID uuid) {
-        return players.add(uuid);
+    public Map<UUID, Integer> getKills() {
+        return Collections.unmodifiableMap(kills);
     }
 
-    public boolean removePlayer(UUID uuid) {
-        return players.remove(uuid);
+    public void addSpectator(UUID uuid) {
+        spectators.add(uuid);
+    }
+
+    public void removeSpectator(UUID uuid) {
+        spectators.remove(uuid);
+    }
+
+    public void addPlayer(UUID uuid) {
+        players.put(uuid, PlayerStatus.ALIVE);
+    }
+
+    public void removePlayer(UUID uuid) {
+        players.remove(uuid);
     }
 
 
+    public enum PlayerStatus {
+        ALIVE,
+        KILLED
+    }
 }
