@@ -36,7 +36,7 @@ public class Config {
     public void loadConfig() {
 
         config = ShootingCombats.getPlugin().getConfig();
-        
+
         int intTemp;
 
         //.addDefault("default", "default");

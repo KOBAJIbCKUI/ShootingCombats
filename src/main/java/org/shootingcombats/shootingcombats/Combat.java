@@ -10,7 +10,7 @@ public interface Combat {
     void leaveAsSpectator(UUID uuid);
     Set<UUID> getPlayers();
     Set<UUID> getSpectators();
-    CombatMap getCombatMap();
+    CombatMap getCurrentCombatMap();
     void onKill(UUID killer, UUID killed);
     void onQuit(UUID uuid);
     void start();
