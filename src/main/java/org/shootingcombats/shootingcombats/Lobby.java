@@ -2,13 +2,13 @@ package org.shootingcombats.shootingcombats;
 
 import org.bukkit.Location;
 import org.shootingcombats.shootingcombats.util.TypedProperty;
-import org.shootingcombats.shootingcombats.util.TypedPropertyImpl;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public interface Lobby {
     String getName();
+    void setName(String name);
     String getType();
     void setOwner(UUID uuid);
     UUID getOwner();
@@ -22,9 +22,7 @@ public interface Lobby {
     void setPlayerReady(UUID uuid);
     void unsetPlayerReady(UUID uuid);
     int getPlayersNumber();
-    void setMinPlayers(int number);
     void setMaxPlayers(int number);
-    int getMinPlayers();
     int getMaxPlayers();
     void addCombatMap(CombatMap combatMap);
     boolean containsCombatMap(CombatMap combatMap);
@@ -39,13 +37,11 @@ public interface Lobby {
     boolean isInLobby(UUID uuid);
     Combat getCurrentCombat();
     void startCombat(CombatMap combatMap);
-
+    void setPlayerStatus(UUID uuid, PlayerStatus playerStatus);
     enum LobbyStatus {
         READY,
         NOT_READY,
-        STARTING,
-        RUNNING,
-        ENDING
+        RUNNING
     }
 
     enum PlayerStatus {
