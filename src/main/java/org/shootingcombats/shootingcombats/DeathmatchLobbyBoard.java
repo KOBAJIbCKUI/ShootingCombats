@@ -10,7 +10,7 @@ import org.bukkit.scoreboard.Team;
 
 import java.util.UUID;
 
-public class DeathmatchLobbyBoard {
+public final class DeathmatchLobbyBoard {
 
     private final Scoreboard scoreboard;
     private final Objective winsObjective;

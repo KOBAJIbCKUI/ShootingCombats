@@ -13,7 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public class MapsConfig {
+public final class MapsConfig {
     private final CombatMapManager mapsManager;
     private FileConfiguration mapsConfig;
     private Path configPath;
