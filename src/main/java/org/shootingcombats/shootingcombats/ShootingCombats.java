@@ -2,12 +2,18 @@ package org.shootingcombats.shootingcombats;
 
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.shootingcombats.shootingcombats.data.MapsConfig;
+import org.shootingcombats.shootingcombats.data.PluginConfig;
 import org.shootingcombats.shootingcombats.util.Util;
 
 public final class ShootingCombats extends JavaPlugin {
 
     //Plugin reference
     private static ShootingCombats plugin;
+    private static MapsConfig mapsConfig;
+    private static PluginConfig pluginConfig;
+    private static CombatMapManager mapsManager;
+    private static LobbiesManager lobbiesManager;
 
     @Override
     public void onEnable() {
@@ -23,6 +29,10 @@ public final class ShootingCombats extends JavaPlugin {
         }
 
         plugin = this;
+        mapsManager = new CombaMapManagerImpl();
+        pluginConfig = new PluginConfig();
+        mapsConfig = new MapsConfig();
+        lobbiesManager = new SimpleLobbiesManager();
 
         Util.log("Plugin enabled");
     }
@@ -34,5 +44,20 @@ public final class ShootingCombats extends JavaPlugin {
 
     public static ShootingCombats getPlugin() {
         return plugin;
+    }
+
+    public static CombatMapManager getMapsManager() {
+        return mapsManager;
+    }
+    public static LobbiesManager getLobbiesManager() {
+        return lobbiesManager;
+    }
+
+    public static MapsConfig getMapsConfig() {
+        return mapsConfig;
+    }
+
+    public static PluginConfig getPluginConfig() {
+        return pluginConfig;
     }
 }
