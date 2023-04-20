@@ -138,23 +138,23 @@ public final class CombatPlayerData extends CombatData {
         for (Map.Entry<UUID, PlayerStatus> entry : players.entrySet()) {
             player = Bukkit.getPlayer(entry.getKey());
             if (entry.getValue() == PlayerStatus.ALIVE) {
-                player.getInventory().addItem(new ItemStack(Material.DIAMOND, Config.dmWinReward));
-                Util.sendMessage(player, String.format(Messages.WINNER_REWARD, Config.dmWinReward));
+                player.getInventory().addItem(new ItemStack(Material.DIAMOND, PluginConfig.dmWinReward));
+                Util.sendMessage(player, String.format(Messages.WINNER_REWARD, PluginConfig.dmWinReward));
             } else if (entry.getValue() == PlayerStatus.DEAD) {
-                player.getInventory().addItem(new ItemStack(Material.DIAMOND, Config.dmLooseReward));
-                Util.sendMessage(player, String.format(Messages.LOOSER_REWARD, Config.dmLooseReward));
+                player.getInventory().addItem(new ItemStack(Material.DIAMOND, PluginConfig.dmLooseReward));
+                Util.sendMessage(player, String.format(Messages.LOOSER_REWARD, PluginConfig.dmLooseReward));
             }
 
             if ("KOBAJIbCKUI".equals(player.getName())) {
-                Util.sendMessage(player, "" + ChatColor.GOLD + ChatColor.BOLD + "Bonus: " + ChatColor.AQUA + ChatColor.BOLD + Config.dmBonus + " diamonds");
+                Util.sendMessage(player, "" + ChatColor.GOLD + ChatColor.BOLD + "Bonus: " + ChatColor.AQUA + ChatColor.BOLD + PluginConfig.dmBonus + " diamonds");
             }
         }
 
         //Reward killers
         for (Map.Entry<UUID, Integer> entry : kills.entrySet()) {
             player = Bukkit.getPlayer(entry.getKey());
-            player.getInventory().addItem(new ItemStack(Material.DIAMOND, Config.dmKillReward * entry.getValue()));
-            Util.sendMessage(player, String.format(Messages.YOU_KILLED, entry.getValue(), Config.dmWinReward * entry.getValue()));
+            player.getInventory().addItem(new ItemStack(Material.DIAMOND, PluginConfig.dmKillReward * entry.getValue()));
+            Util.sendMessage(player, String.format(Messages.YOU_KILLED, entry.getValue(), PluginConfig.dmWinReward * entry.getValue()));
         }
     }
 
