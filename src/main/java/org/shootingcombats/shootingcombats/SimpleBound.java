@@ -1,5 +1,6 @@
 package org.shootingcombats.shootingcombats;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 
 import java.util.Objects;
@@ -11,7 +12,7 @@ public final class SimpleBound implements Bound {
     //private Set<Entity> entities;
 
     public SimpleBound(String world, int x1, int y1, int z1, int x2, int y2, int z2) {
-        this.world = world;
+        this.world = Objects.requireNonNull(world);
         this.x1 = Math.min(x1, x2);
         this.y1 = Math.min(y1, y2);
         this.z1 = Math.min(z1, z2);
@@ -34,6 +35,21 @@ public final class SimpleBound implements Bound {
     }
 
     @Override
+    public String getWorld() {
+        return this.world;
+    }
+
+    @Override
+    public Location getGreaterCorner() {
+        return new Location(Bukkit.getWorld(world), x2, y2, z2);
+    }
+
+    @Override
+    public Location getLowerCorner() {
+        return new Location(Bukkit.getWorld(world), x1, y1, z1);
+    }
+
+    @Override
     public boolean isInBounds(Location location) {
         if (!Objects.requireNonNull(location.getWorld()).getName().equals(world)) {
             return false;
@@ -42,6 +58,19 @@ public final class SimpleBound implements Bound {
         int ny = location.getBlockY();
         int nz = location.getBlockZ();
         return (nx >= x1 && nx <= x2) && (ny >= x1 && ny <= y2) && (nz >= z1 && nz <= z2);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        SimpleBound that = (SimpleBound) o;
+        return x1 == that.x1 && y1 == that.y1 && z1 == that.z1 && x2 == that.x2 && y2 == that.y2 && z2 == that.z2 && world.equals(that.world);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(x1, y1, z1, x2, y2, z2, world);
     }
 
     @Override
