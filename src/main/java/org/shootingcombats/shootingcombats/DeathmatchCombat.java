@@ -6,7 +6,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.shootingcombats.shootingcombats.data.CombatPlayerData;
-import org.shootingcombats.shootingcombats.data.Config;
+import org.shootingcombats.shootingcombats.data.PluginConfig;
 import org.shootingcombats.shootingcombats.util.Messages;
 import org.shootingcombats.shootingcombats.util.TypedProperty;
 import org.shootingcombats.shootingcombats.util.Util;
@@ -21,7 +21,6 @@ public final class DeathmatchCombat implements Combat {
     private final CombatPlayerData combatPlayerData;
     private final Lobby lobby;
     private final BukkitRunnable countdownRunnable, combatRunnable;
-    private final CombatMap finalCombatMap;
     private CombatMap currentCombatMap;
 
     public DeathmatchCombat(DeathmatchLobby lobby, Set<UUID> players, long minutesToEnd, Map<String, TypedProperty> properties, CombatMap combatMap) {
@@ -31,13 +30,12 @@ public final class DeathmatchCombat implements Combat {
     public DeathmatchCombat(DeathmatchLobby lobby, Set<UUID> players, long minutesToEnd, Map<String, TypedProperty> properties, CombatMap combatMap, CombatMap finalCombatMap) {
         this.lobby = lobby;
         this.currentCombatMap = new SimpleCombatMap(combatMap.getName(), combatMap.getBound());
-        this.finalCombatMap = finalCombatMap != null ? new SimpleCombatMap(finalCombatMap.getName(), finalCombatMap.getBound()) : null;
         this.minutesToEnd = minutesToEnd;
-        this.minutesToTags = properties.get("minutes-to-tags").getValue(Integer.class).orElse(Config.dmMinutesToTags);
-        this.minutesToFinalTp = properties.get("minutes-to-final-tp").getValue(Integer.class).orElse(Config.dmMinutesToFinalTp);
-        this.endgameTags = properties.get("endgame-tags").getValue(Boolean.class).orElse(Config.dmEndgameTags);
-        this.finalTeleport = properties.get("final-teleport").getValue(Boolean.class).orElse(Config.dmFinalTeleport);
-        this.spectateAfterDeath = properties.get("spectate-after-death").getValue(Boolean.class).orElse(Config.dmDeathSpectate);
+        this.minutesToTags = properties.get("minutes-to-tags").getValue(Integer.class).orElse(PluginConfig.dmMinutesToTags);
+        this.minutesToFinalTp = properties.get("minutes-to-final-tp").getValue(Integer.class).orElse(PluginConfig.dmMinutesToFinalTp);
+        this.endgameTags = properties.get("endgame-tags").getValue(Boolean.class).orElse(PluginConfig.dmEndgameTags);
+        this.finalTeleport = properties.get("final-teleport").getValue(Boolean.class).orElse(PluginConfig.dmFinalTeleport);
+        this.spectateAfterDeath = properties.get("spectate-after-death").getValue(Boolean.class).orElse(PluginConfig.dmDeathSpectate);
 
         this.combatPlayerData = new CombatPlayerData(this);
         for (UUID uuid : players) {
@@ -179,8 +177,11 @@ public final class DeathmatchCombat implements Combat {
     }
 
     private void startFinalCombat() {
-        this.currentCombatMap = this.finalCombatMap;
-        spawn(combatPlayerData.getAlivePlayers(), currentCombatMap.getSpawns());
+        Location finalLocation = currentCombatMap.getSpawns().get(ThreadLocalRandom.current().nextInt(currentCombatMap.spawnsNumber()));
+        for (UUID uuid : combatPlayerData.getAlivePlayers()) {
+            spawn(uuid, finalLocation);
+        }
+        //TODO: change message
         Util.sendTitle(combatPlayerData.getAlivePlayers(), Messages.WELCOME_TO_GULAG, Messages.TRAITORS);
         Util.sendTitle(combatPlayerData.getSpectators(), Messages.WELCOME_TO_GULAG, Messages.TRAITORS);
     }
@@ -195,9 +196,16 @@ public final class DeathmatchCombat implements Combat {
     }
 
     private void spawn(Set<UUID> uuids, List<Location> locations) {
-        Collections.shuffle(locations, ThreadLocalRandom.current());
-        for (UUID uuid : uuids) {
-            Bukkit.getPlayer(uuid).teleport(locations.remove(0));
+        if (locations.size() != 0) {
+            Collections.shuffle(locations, ThreadLocalRandom.current());
+            int index = 0;
+            for (UUID uuid : uuids) {
+                if (index >= locations.size()) {
+                    index = 0;
+                }
+                Bukkit.getPlayer(uuid).teleport(locations.get(index));
+                index++;
+            }
         }
     }
 

@@ -19,8 +19,6 @@ public interface Lobby {
     boolean containsProperty(String property);
     void joinLobby(UUID uuid);
     void leaveLobby(UUID uuid);
-    void setPlayerReady(UUID uuid);
-    void unsetPlayerReady(UUID uuid);
     int getPlayersNumber();
     void setMaxPlayers(int number);
     int getMaxPlayers();
@@ -34,9 +32,11 @@ public interface Lobby {
     long getCombatDuration(TimeUnit timeUnit);
     LobbyStatus getLobbyStatus();
     void setLobbyStatus(LobbyStatus lobbyStatus);
-    boolean isInLobby(UUID uuid);
+    boolean isPlayerInLobby(UUID uuid);
+    Collection<UUID> getPlayers();
     Combat getCurrentCombat();
     void startCombat(CombatMap combatMap);
+    void stopCombat();
     void setPlayerStatus(UUID uuid, PlayerStatus playerStatus);
     enum LobbyStatus {
         READY,

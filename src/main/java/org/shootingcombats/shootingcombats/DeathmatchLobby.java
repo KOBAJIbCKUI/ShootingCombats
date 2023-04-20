@@ -2,7 +2,7 @@ package org.shootingcombats.shootingcombats;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.shootingcombats.shootingcombats.data.Config;
+import org.shootingcombats.shootingcombats.data.PluginConfig;
 import org.shootingcombats.shootingcombats.util.TypedProperty;
 import org.shootingcombats.shootingcombats.util.TypedPropertyImpl;
 import org.shootingcombats.shootingcombats.util.Util;
@@ -16,8 +16,8 @@ public final class DeathmatchLobby implements Lobby {
     private final Map<UUID, PlayerStatus> players;
     private final List<CombatMap> combatMaps;
     private final String type;
+    private final DeathmatchLobbyBoard lobbyBoard;
     private String name;
-    private CombatMap finalCombatMap;
     private long combatDurationMinutes;
     private UUID owner;
     private int maxPlayers;
@@ -25,25 +25,27 @@ public final class DeathmatchLobby implements Lobby {
     private Combat currentCombat;
     private Location lobbySpawn;
 
-    public DeathmatchLobby(String name, UUID owner) {
+    private DeathmatchLobby(String name) {
         this.name = name;
-        this.owner = owner;
         this.type = "Deathmatch";
-        this.maxPlayers = Config.gbMaxLobbyPlayers;
+        this.maxPlayers = Math.min(8, Bukkit.getMaxPlayers());
         this.lobbyStatus = LobbyStatus.NOT_READY;
         this.players = new HashMap<>();
         this.lobbyProperties = new LinkedHashMap<>();
         this.combatMaps = new ArrayList<>();
-        setCombatDuration(TimeUnit.MINUTES, Config.dmCombatDurMinutes);
+        setCombatDuration(TimeUnit.MINUTES, PluginConfig.dmCombatDurMinutes);
 
-        lobbyProperties.put("final-teleport", new TypedPropertyImpl(Config.dmFinalTeleport));
-        lobbyProperties.put("minutes-to-final-tp", new TypedPropertyImpl(Config.dmMinutesToFinalTp));
-        lobbyProperties.put("endgame-tags", new TypedPropertyImpl(Config.dmEndgameTags));
-        lobbyProperties.put("minutes-to-tags", new TypedPropertyImpl(Config.dmMinutesToTags));
-        lobbyProperties.put("spectate-after-death", new TypedPropertyImpl(Config.dmDeathSpectate));
-        lobbyProperties.put("final-map", new TypedPropertyImpl(""));
+        lobbyProperties.put("final-teleport", new TypedPropertyImpl(PluginConfig.dmFinalTeleport));
+        lobbyProperties.put("minutes-to-final-tp", new TypedPropertyImpl(PluginConfig.dmMinutesToFinalTp));
+        lobbyProperties.put("endgame-tags", new TypedPropertyImpl(PluginConfig.dmEndgameTags));
+        lobbyProperties.put("minutes-to-tags", new TypedPropertyImpl(PluginConfig.dmMinutesToTags));
+        lobbyProperties.put("spectate-after-death", new TypedPropertyImpl(PluginConfig.dmDeathSpectate));
 
-        update();
+        this.lobbyBoard = new DeathmatchLobbyBoard();
+    }
+
+    public static DeathmatchLobby newLobby(String name) {
+        return new DeathmatchLobby(Objects.requireNonNull(name));
     }
 
     @Override
@@ -53,7 +55,6 @@ public final class DeathmatchLobby implements Lobby {
     @Override
     public void setName(String name) {
         this.name = name;
-        update();
     }
 
     @Override
@@ -69,7 +70,6 @@ public final class DeathmatchLobby implements Lobby {
     @Override
     public void setLobbySpawn(Location location) {
         this.lobbySpawn = new Location(location.getWorld(), location.getX(), location.getY(), location.getZ());
-        update();
     }
 
     @Override
@@ -80,17 +80,13 @@ public final class DeathmatchLobby implements Lobby {
     @Override
     public void setOwner(UUID owner) {
         this.owner = owner;
-        update();
+        this.lobbyBoard.setOwner(owner);
     }
 
     @Override
     public void setProperty(String property, TypedProperty value) {
         if (lobbyProperties.containsKey(property)) {
             lobbyProperties.put(property, value);
-            if (property.equals("final-map")) {
-                //get map from map list
-            }
-            update();
         }
     }
 
@@ -107,56 +103,36 @@ public final class DeathmatchLobby implements Lobby {
     @Override
     public void joinLobby(UUID uuid) {
         players.put(uuid, PlayerStatus.NOT_READY);
-        checkStatus();
+        this.lobbyBoard.addPlayerToBoard(uuid);
+        this.lobbyBoard.setPlayerStatus(uuid, PlayerStatus.NOT_READY);
+        updateLobbyStatus();
         Util.log(Bukkit.getPlayer(uuid).getName() + " joined lobby " + this.name);
-        Util.sendMessage(uuid, "You joined lobby " + this.name);
         for (Map.Entry<UUID, PlayerStatus> entry : players.entrySet()) {
             if (entry.getValue() != PlayerStatus.IN_COMBAT) {
                 Util.sendMessage(uuid, Bukkit.getPlayer(uuid).getName() + " joined lobby");
             }
         }
-        update();
     }
 
     @Override
     public void leaveLobby(UUID uuid) {
         players.remove(uuid);
-        //If no players in lobby stops current battle and removes lobby from lobbies list
-        if (players.isEmpty()) {
-            if (currentCombat != null) {
-                currentCombat.forcedStop();
+        this.lobbyBoard.removePlayerFromBoard(uuid);
+
+        if (owner.equals(uuid)) {
+            setOwner(players.keySet().stream().findFirst().orElse(null));
+            if (owner != null && players.get(owner) != PlayerStatus.IN_COMBAT) {
+                Util.sendMessage(owner, "You are owner of this lobby");
             }
-            //removeLobby();
-        }
-        if (owner.equals(uuid) && !players.isEmpty()) {
-            setOwner(players.keySet().stream().findFirst().get());
-            checkStatus();
         }
 
         Util.log(Bukkit.getPlayer(uuid).getName() + " left lobby " + this.name);
-        Util.sendMessage(uuid, "You left lobby " + this.name);
-        if (players.get(owner) != PlayerStatus.IN_COMBAT) {
-            Util.sendMessage(owner, "Now you are host of lobby " + this.name);
-        }
 
         for (Map.Entry<UUID, PlayerStatus> entry : players.entrySet()) {
             if (entry.getValue() != PlayerStatus.IN_COMBAT) {
-                Util.sendMessage(uuid, Bukkit.getPlayer(uuid).getName() + " joined lobby");
+                Util.sendMessage(uuid, Bukkit.getPlayer(uuid).getName() + " left lobby");
             }
         }
-        update();
-    }
-
-    @Override
-    public void setPlayerReady(UUID uuid) {
-        players.put(uuid, PlayerStatus.READY);
-        update();
-    }
-
-    @Override
-    public void unsetPlayerReady(UUID uuid) {
-        players.put(uuid, PlayerStatus.NOT_READY);
-        update();
     }
 
     @Override
@@ -166,9 +142,8 @@ public final class DeathmatchLobby implements Lobby {
 
     @Override
     public void setMaxPlayers(int number) {
-        if (number >= 1 && number <= Config.gbMaxLobbyPlayers) {
+        if (number >= 1 && number <= Bukkit.getServer().getMaxPlayers()) {
             this.maxPlayers = number;
-            update();
         }
     }
 
@@ -181,7 +156,6 @@ public final class DeathmatchLobby implements Lobby {
     public void addCombatMap(CombatMap combatMap) {
         if (!containsCombatMap(combatMap)) {
             this.combatMaps.add(combatMap);
-            update();
         }
     }
 
@@ -193,14 +167,12 @@ public final class DeathmatchLobby implements Lobby {
     @Override
     public void removeCombatMap(CombatMap combatMap) {
         this.combatMaps.remove(combatMap);
-        update();
     }
 
     @Override
     public void removeCombatMap(int index) {
         if (index > 0 && index < combatMaps.size()) {
             this.combatMaps.remove(index - 1);
-            update();
         }
     }
 
@@ -217,10 +189,22 @@ public final class DeathmatchLobby implements Lobby {
     @Override
     public void setCombatDuration(TimeUnit timeUnit, long timeInTimeUnits) {
         long result = timeUnit.toMinutes(timeInTimeUnits);
-        if (result >= 1) {
+        if (result >= 1 && result <= PluginConfig.gbMaxCombatDurMinutes) {
             this.combatDurationMinutes = result;
-            update();
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        DeathmatchLobby that = (DeathmatchLobby) o;
+        return name.equals(that.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name);
     }
 
     @Override
@@ -236,12 +220,16 @@ public final class DeathmatchLobby implements Lobby {
     @Override
     public void setLobbyStatus(LobbyStatus lobbyStatus) {
         this.lobbyStatus = lobbyStatus;
-        update();
     }
 
     @Override
-    public boolean isInLobby(UUID uuid) {
+    public boolean isPlayerInLobby(UUID uuid) {
         return players.containsKey(uuid);
+    }
+
+    @Override
+    public Collection<UUID> getPlayers() {
+        return new HashSet<>(players.keySet());
     }
 
     @Override
@@ -251,31 +239,57 @@ public final class DeathmatchLobby implements Lobby {
 
     @Override
     public void startCombat(CombatMap combatMap) {
-        if (lobbyStatus == LobbyStatus.READY) {
-            players.replaceAll((k, v) -> PlayerStatus.IN_COMBAT);
-            this.currentCombat = new DeathmatchCombat(this, players.keySet(), combatDurationMinutes, lobbyProperties, combatMap, finalCombatMap);
-            currentCombat.start();
-            update();
+        switch (lobbyStatus) {
+            case READY: {
+                for (UUID uuid : players.keySet()) {
+                    setPlayerStatus(uuid, PlayerStatus.IN_COMBAT);
+                }
+                Util.sendMessage(owner, "You successfully started the combat");
+
+                this.currentCombat = new DeathmatchCombat(this, players.keySet(), combatDurationMinutes, lobbyProperties, combatMap);
+                currentCombat.start();
+                break;
+            }
+            case RUNNING: {
+                Util.sendMessage(owner, "Unable to start a combat!");
+                Util.sendMessage(owner, "Lobby is already in combat!");
+                break;
+            }
+            case NOT_READY: {
+                Util.sendMessage(owner, "Unable to start a combat!");
+                Util.sendMessage(owner, "Not all players are READY!");
+                break;
+            }
+        }
+    }
+
+    @Override
+    public void stopCombat() {
+        if (lobbyStatus == LobbyStatus.RUNNING) {
+            currentCombat.forcedStop();
         }
     }
 
     @Override
     public void setPlayerStatus(UUID uuid, PlayerStatus playerStatus) {
-        update();
+        players.put(uuid, playerStatus);
+        this.lobbyBoard.setPlayerStatus(uuid, playerStatus);
+        updateLobbyStatus();
     }
 
-    private void update() {
-        checkStatus();
-    }
-
-    private void checkStatus() {
-        if (lobbyStatus != LobbyStatus.READY && lobbyStatus != LobbyStatus.NOT_READY) {
+    private void updateLobbyStatus() {
+        if (players.values().stream().anyMatch(status -> status == PlayerStatus.IN_COMBAT)) {
+            lobbyStatus = LobbyStatus.RUNNING;
             return;
         }
+
         if (players.values().stream().anyMatch(status -> status == PlayerStatus.NOT_READY)) {
-            this.lobbyStatus = LobbyStatus.NOT_READY;
-        } else {
-            this.lobbyStatus = LobbyStatus.READY;
+            lobbyStatus = LobbyStatus.NOT_READY;
+            return;
+        }
+
+        if (players.values().stream().allMatch(status -> status == PlayerStatus.READY)) {
+            lobbyStatus = LobbyStatus.READY;
         }
     }
 }
