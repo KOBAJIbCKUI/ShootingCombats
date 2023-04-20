@@ -4,6 +4,7 @@ import org.bukkit.Location;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public final class SimpleCombatMap implements CombatMap {
 
@@ -12,8 +13,8 @@ public final class SimpleCombatMap implements CombatMap {
     private String name;
 
     public SimpleCombatMap(String name, Bound bound) {
-        this.name = name;
-        this.bound = bound;
+        this.name = Objects.requireNonNull(name);
+        this.bound = Objects.requireNonNull(bound);
 
         this.spawns = new ArrayList<>();
     }
@@ -25,12 +26,12 @@ public final class SimpleCombatMap implements CombatMap {
 
     @Override
     public void setName(String name) {
-        this.name = name;
+        this.name = Objects.requireNonNull(name);
     }
 
     @Override
     public boolean addSpawn(Location location) {
-        if (spawns.contains(location)) {
+        if (!isInRegion(location) || spawns.contains(location)) {
             return false;
         }
 
@@ -72,12 +73,26 @@ public final class SimpleCombatMap implements CombatMap {
 
     @Override
     public void setBound(Bound bound) {
-        this.bound = bound;
+        this.bound = Objects.requireNonNull(bound);
+        spawns.removeIf(spawn -> !isInRegion(spawn));
     }
 
     @Override
     public boolean isInRegion(Location location) {
         return bound.isInBounds(location);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        SimpleCombatMap that = (SimpleCombatMap) o;
+        return bound.equals(that.bound) && name.equals(that.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(bound, name);
     }
 
     @Override
