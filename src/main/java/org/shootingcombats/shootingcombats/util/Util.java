@@ -10,7 +10,7 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class Util {
+public final class Util {
     private static final Logger LOGGER = Bukkit.getLogger();
 
     private Util() {

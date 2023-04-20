@@ -5,7 +5,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.shootingcombats.shootingcombats.ShootingCombats;
 
-public class Config {
+public final class Config {
     private FileConfiguration config;
 
     //Global settings

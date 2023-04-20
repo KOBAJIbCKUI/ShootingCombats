@@ -2,7 +2,7 @@ package org.shootingcombats.shootingcombats.util;
 
 import org.bukkit.ChatColor;
 
-public class Messages {
+public final class Messages {
 
     //Strings answers
     public static final String BATTLE_STARTS_IN = "" + ChatColor.GOLD + ChatColor.BOLD + "Battle starts in " + ChatColor.RED + ChatColor.BOLD +  "%d" + ChatColor.GOLD + ChatColor.BOLD + " seconds!";

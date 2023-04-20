@@ -2,7 +2,7 @@ package org.shootingcombats.shootingcombats.util;
 
 import java.util.Optional;
 
-public class TypedPropertyImpl implements TypedProperty {
+public final class TypedPropertyImpl implements TypedProperty {
     private final Object value;
 
     public TypedPropertyImpl(Object value) {
