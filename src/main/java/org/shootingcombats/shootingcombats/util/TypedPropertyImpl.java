@@ -1,12 +1,13 @@
 package org.shootingcombats.shootingcombats.util;
 
+import java.util.Objects;
 import java.util.Optional;
 
 public final class TypedPropertyImpl implements TypedProperty {
     private final Object value;
 
     public TypedPropertyImpl(Object value) {
-        this.value = value;
+        this.value = Objects.requireNonNull(value);
     }
 
     @Override
