@@ -8,10 +8,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.shootingcombats.shootingcombats.Combat;
-import org.shootingcombats.shootingcombats.DmState;
-import org.shootingcombats.shootingcombats.DmSpectatorState;
-import org.shootingcombats.shootingcombats.PlayerState;
+import org.shootingcombats.shootingcombats.combat.Combat;
 import org.shootingcombats.shootingcombats.util.Messages;
 import org.shootingcombats.shootingcombats.util.Util;
 

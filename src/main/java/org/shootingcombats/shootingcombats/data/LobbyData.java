@@ -1,6 +1,6 @@
 package org.shootingcombats.shootingcombats.data;
 
-import org.shootingcombats.shootingcombats.Lobby;
+import org.shootingcombats.shootingcombats.lobby.Lobby;
 
 public abstract class LobbyData {
     private final Lobby lobby;

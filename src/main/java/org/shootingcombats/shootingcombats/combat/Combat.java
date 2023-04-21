@@ -1,4 +1,6 @@
-package org.shootingcombats.shootingcombats;
+package org.shootingcombats.shootingcombats.combat;
+
+import org.shootingcombats.shootingcombats.map.CombatMap;
 
 import java.util.Set;
 import java.util.UUID;

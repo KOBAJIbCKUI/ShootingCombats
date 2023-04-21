@@ -6,6 +6,11 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.shootingcombats.shootingcombats.*;
+import org.shootingcombats.shootingcombats.manager.CombatMapManager;
+import org.shootingcombats.shootingcombats.map.Bound;
+import org.shootingcombats.shootingcombats.map.CombatMap;
+import org.shootingcombats.shootingcombats.map.SimpleBound;
+import org.shootingcombats.shootingcombats.map.SimpleCombatMap;
 import org.shootingcombats.shootingcombats.util.Util;
 
 import java.io.IOException;

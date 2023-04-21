@@ -1,4 +1,6 @@
-package org.shootingcombats.shootingcombats;
+package org.shootingcombats.shootingcombats.manager;
+
+import org.shootingcombats.shootingcombats.map.CombatMap;
 
 import java.util.Map;
 import java.util.Optional;

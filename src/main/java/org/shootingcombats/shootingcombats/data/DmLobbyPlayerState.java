@@ -1,4 +1,4 @@
-package org.shootingcombats.shootingcombats;
+package org.shootingcombats.shootingcombats.data;
 
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;

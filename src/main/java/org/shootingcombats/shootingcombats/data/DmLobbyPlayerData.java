@@ -1,6 +1,6 @@
 package org.shootingcombats.shootingcombats.data;
 
-import org.shootingcombats.shootingcombats.*;
+import org.shootingcombats.shootingcombats.lobby.Lobby;
 
 import java.util.*;
 

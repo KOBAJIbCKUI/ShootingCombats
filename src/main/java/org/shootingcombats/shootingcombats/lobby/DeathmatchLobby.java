@@ -1,9 +1,15 @@
-package org.shootingcombats.shootingcombats;
+package org.shootingcombats.shootingcombats.lobby;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.shootingcombats.shootingcombats.combat.Combat;
+import org.shootingcombats.shootingcombats.combat.DeathmatchCombat;
+import org.shootingcombats.shootingcombats.bar.DmLobbyBar;
+import org.shootingcombats.shootingcombats.board.DmLobbyBoard;
 import org.shootingcombats.shootingcombats.data.DmLobbyPlayerData;
 import org.shootingcombats.shootingcombats.data.PluginConfig;
+import org.shootingcombats.shootingcombats.manager.LobbiesManager;
+import org.shootingcombats.shootingcombats.map.CombatMap;
 import org.shootingcombats.shootingcombats.util.TypedProperty;
 import org.shootingcombats.shootingcombats.util.TypedPropertyImpl;
 import org.shootingcombats.shootingcombats.util.Util;

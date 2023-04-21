@@ -1,6 +1,6 @@
 package org.shootingcombats.shootingcombats.data;
 
-import org.shootingcombats.shootingcombats.Combat;
+import org.shootingcombats.shootingcombats.combat.Combat;
 
 public abstract class CombatData {
     private final Combat combat;

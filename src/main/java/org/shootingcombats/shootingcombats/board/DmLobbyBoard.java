@@ -1,4 +1,4 @@
-package org.shootingcombats.shootingcombats;
+package org.shootingcombats.shootingcombats.board;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -6,6 +6,7 @@ import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
+import org.shootingcombats.shootingcombats.lobby.Lobby;
 
 import java.util.UUID;
 

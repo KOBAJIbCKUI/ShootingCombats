@@ -4,6 +4,10 @@ import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.shootingcombats.shootingcombats.data.MapsConfig;
 import org.shootingcombats.shootingcombats.data.PluginConfig;
+import org.shootingcombats.shootingcombats.manager.CombaMapManagerImpl;
+import org.shootingcombats.shootingcombats.manager.CombatMapManager;
+import org.shootingcombats.shootingcombats.manager.LobbiesManager;
+import org.shootingcombats.shootingcombats.manager.SimpleLobbiesManager;
 import org.shootingcombats.shootingcombats.util.Util;
 
 public final class ShootingCombats extends JavaPlugin {

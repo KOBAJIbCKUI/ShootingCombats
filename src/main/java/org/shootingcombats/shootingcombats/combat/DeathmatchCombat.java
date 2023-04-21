@@ -1,12 +1,18 @@
-package org.shootingcombats.shootingcombats;
+package org.shootingcombats.shootingcombats.combat;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.shootingcombats.shootingcombats.bar.DmCombatBar;
+import org.shootingcombats.shootingcombats.board.DmCombatBoard;
+import org.shootingcombats.shootingcombats.ShootingCombats;
 import org.shootingcombats.shootingcombats.data.DmCombatPlayerData;
 import org.shootingcombats.shootingcombats.data.PluginConfig;
+import org.shootingcombats.shootingcombats.lobby.DeathmatchLobby;
+import org.shootingcombats.shootingcombats.map.CombatMap;
+import org.shootingcombats.shootingcombats.map.SimpleCombatMap;
 import org.shootingcombats.shootingcombats.util.Messages;
 import org.shootingcombats.shootingcombats.util.TypedProperty;
 import org.shootingcombats.shootingcombats.util.Util;

@@ -1,11 +1,14 @@
-package org.shootingcombats.shootingcombats;
+package org.shootingcombats.shootingcombats.manager;
+
+import org.shootingcombats.shootingcombats.manager.CombatMapManager;
+import org.shootingcombats.shootingcombats.map.CombatMap;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 
-public final class CombaMapManagerImpl implements CombatMapManager{
+public final class CombaMapManagerImpl implements CombatMapManager {
 
     private final Map<CombatMap, CombatMapStatus> maps;
 

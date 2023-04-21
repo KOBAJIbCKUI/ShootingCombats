@@ -1,4 +1,4 @@
-package org.shootingcombats.shootingcombats;
+package org.shootingcombats.shootingcombats.map;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;

@@ -1,10 +1,11 @@
-package org.shootingcombats.shootingcombats;
+package org.shootingcombats.shootingcombats.bar;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
+import org.shootingcombats.shootingcombats.lobby.Lobby;
 
 import java.util.UUID;
 

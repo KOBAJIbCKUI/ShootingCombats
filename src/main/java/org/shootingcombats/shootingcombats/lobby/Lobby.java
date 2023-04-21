@@ -1,7 +1,9 @@
-package org.shootingcombats.shootingcombats;
+package org.shootingcombats.shootingcombats.lobby;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.shootingcombats.shootingcombats.combat.Combat;
+import org.shootingcombats.shootingcombats.map.CombatMap;
 import org.shootingcombats.shootingcombats.util.TypedProperty;
 
 import java.util.*;
