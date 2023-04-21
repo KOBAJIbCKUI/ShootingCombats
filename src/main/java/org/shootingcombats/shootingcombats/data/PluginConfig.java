@@ -1,6 +1,5 @@
 package org.shootingcombats.shootingcombats.data;
 
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.shootingcombats.shootingcombats.ShootingCombats;
@@ -81,6 +80,10 @@ public final class PluginConfig {
 
         currentSection = currentSection.replace("global.", "deathmatch.default_properties."); //Deathmatch default_properties
 
+        dmDeathSpectate = pluginConfig.getBoolean(currentSection + "spectate_after_death");
+        dmEndgameTags = pluginConfig.getBoolean(currentSection + "endgame_tags");
+        dmFinalTeleport = pluginConfig.getBoolean(currentSection + "final_teleport");
+
         dmCombatDurMinutes = pluginConfig.getInt(currentSection + "combat_duration_minutes");
         dmCombatDurMinutes = dmCombatDurMinutes < 1 || dmCombatDurMinutes > gbMaxCombatDurMinutes ? 15 : dmCombatDurMinutes;
 
@@ -89,10 +92,6 @@ public final class PluginConfig {
 
         dmMinutesToFinalTp = pluginConfig.getInt(currentSection + "minutes_to_final_tp");
         dmMinutesToFinalTp = Math.min(dmMinutesToFinalTp, dmCombatDurMinutes);
-
-        dmDeathSpectate = pluginConfig.getBoolean(currentSection + "spectate_after_death");
-        dmEndgameTags = pluginConfig.getBoolean(currentSection + "endgame_tags");
-        dmFinalTeleport = pluginConfig.getBoolean(currentSection + "final_teleport");
 
         currentSection = currentSection.replace("default_properties.", "rewards."); //Deathmatch rewards
 
@@ -113,7 +112,6 @@ public final class PluginConfig {
     }
 
     public void saveConfigToFile() {
-        ConfigurationSection mainSection, subSection;
 
         String currentSection = "global."; //Global
 

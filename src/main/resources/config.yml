@@ -1,0 +1,44 @@
+## ShootingCombats
+
+# Global settings
+global:
+  # When enabled, more informative debug messages will be sent when errors occur
+  debug: false
+  # Maximum number of lobbies on server
+  max_lobbies_number: 8
+  # Maximum number of maps on server
+  max_maps_number: 16
+  # Maximum reward size
+  max_reward_size: 64
+  # Maximum combats duration in minutes
+  max_combat_duration_minutes: 15
+
+# Deathmatch settings
+deathmatch:
+  # Default settings for deathmatch lobbies
+  # These settings will apply to any created lobby
+  # But you are able to change them via in-game commands
+  default_properties:
+    # When enabled players after death will spectate combat
+    spectate-after-death: true
+    # When enabled name tags will be shown to all combat members in the end of combat
+    endgame_tags: true
+    # When enabled all players will be teleported to final combat area in the end of combat
+    final_teleport: true
+    # Default combat duration in minutes
+    combat_duration_minutes: 15
+    # Duration in minutes until tags are shown
+    minutes_to_tags: 10
+    # Duration in minutes until players are teleported for final combat
+    minutes_to_final_tp: 14
+  # Rewards for different actions made during combats
+  # By default all rewards are given in diamonds
+  rewards:
+    # Reward for win
+    win: 8
+    # Reward for loose
+    loose: 3
+    # Reward for kill
+    kill: 3
+    # Bonus reward for different extra actions
+    bonus: 5
