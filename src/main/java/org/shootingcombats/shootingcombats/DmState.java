@@ -9,7 +9,7 @@ import org.shootingcombats.shootingcombats.util.Util;
 
 import java.util.UUID;
 
-public final class DeathmatchSpectatorState implements PlayerState {
+public final class DmState implements PlayerState {
     private final UUID uuid;
     private double health;
     private int food;
@@ -17,10 +17,12 @@ public final class DeathmatchSpectatorState implements PlayerState {
     private int expLevel;
     private float expPoints;
     private GameMode gamemode;
-    private ItemStack[] storageContents, extraStorageContents, armourContents;
+    private ItemStack[] storageContents;
+    private ItemStack[] extraStorageContents;
+    private ItemStack[] armourContents;
     private ItemStack itemInOffHand;
 
-    public DeathmatchSpectatorState(UUID uuid) {
+    public DmState(UUID uuid) {
         this.uuid = uuid;
     }
     @Override
@@ -42,7 +44,7 @@ public final class DeathmatchSpectatorState implements PlayerState {
 
         storeInventory();
 
-        Util.log(Bukkit.getPlayer(uuid).getName() + " stored parameters");
+        Util.log(Bukkit.getPlayer(uuid).getName() + " stored parameters to combat");
     }
 
     @Override
@@ -62,7 +64,7 @@ public final class DeathmatchSpectatorState implements PlayerState {
 
         restoreInventory();
 
-        Util.log(Bukkit.getPlayer(uuid).getName() + " restored parameters");
+        Util.log(Bukkit.getPlayer(uuid).getName() + " restored parameters from combat");
     }
 
     private void storeInventory() {
@@ -73,8 +75,14 @@ public final class DeathmatchSpectatorState implements PlayerState {
         this.extraStorageContents = cloneItemStacks(playerInventory.getExtraContents());
         this.armourContents = cloneItemStacks(playerInventory.getArmorContents());
         this.itemInOffHand = new ItemStack(playerInventory.getItemInOffHand());
-
+        ItemStack[] hotbarContents = new ItemStack[storageContents.length];
+        for (int i = 0; i < 9; i++) {
+            hotbarContents[i] = new ItemStack(storageContents[i]);
+        }
         playerInventory.clear();
+        playerInventory.setStorageContents(hotbarContents);
+        playerInventory.setArmorContents(this.armourContents);
+        playerInventory.setItemInOffHand(this.itemInOffHand);
 
         Util.log("Contents storage size: " + storageContents.length);
         Util.log("Armour storage size: " + armourContents.length);

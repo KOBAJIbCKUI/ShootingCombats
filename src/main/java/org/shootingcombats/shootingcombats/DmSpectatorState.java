@@ -9,7 +9,7 @@ import org.shootingcombats.shootingcombats.util.Util;
 
 import java.util.UUID;
 
-public final class DeathmatchPlayerState implements PlayerState {
+public final class DmSpectatorState implements PlayerState {
     private final UUID uuid;
     private double health;
     private int food;
@@ -17,12 +17,10 @@ public final class DeathmatchPlayerState implements PlayerState {
     private int expLevel;
     private float expPoints;
     private GameMode gamemode;
-    private ItemStack[] storageContents;
-    private ItemStack[] extraStorageContents;
-    private ItemStack[] armourContents;
+    private ItemStack[] storageContents, extraStorageContents, armourContents;
     private ItemStack itemInOffHand;
 
-    public DeathmatchPlayerState(UUID uuid) {
+    public DmSpectatorState(UUID uuid) {
         this.uuid = uuid;
     }
     @Override
@@ -75,14 +73,8 @@ public final class DeathmatchPlayerState implements PlayerState {
         this.extraStorageContents = cloneItemStacks(playerInventory.getExtraContents());
         this.armourContents = cloneItemStacks(playerInventory.getArmorContents());
         this.itemInOffHand = new ItemStack(playerInventory.getItemInOffHand());
-        ItemStack[] hotbarContents = new ItemStack[storageContents.length];
-        for (int i = 0; i < 9; i++) {
-            hotbarContents[i] = new ItemStack(storageContents[i]);
-        }
+
         playerInventory.clear();
-        playerInventory.setStorageContents(hotbarContents);
-        playerInventory.setArmorContents(this.armourContents);
-        playerInventory.setItemInOffHand(this.itemInOffHand);
 
         Util.log("Contents storage size: " + storageContents.length);
         Util.log("Armour storage size: " + armourContents.length);

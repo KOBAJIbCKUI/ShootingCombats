@@ -9,22 +9,22 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.shootingcombats.shootingcombats.Combat;
-import org.shootingcombats.shootingcombats.DeathmatchPlayerState;
-import org.shootingcombats.shootingcombats.DeathmatchSpectatorState;
+import org.shootingcombats.shootingcombats.DmState;
+import org.shootingcombats.shootingcombats.DmSpectatorState;
 import org.shootingcombats.shootingcombats.PlayerState;
 import org.shootingcombats.shootingcombats.util.Messages;
 import org.shootingcombats.shootingcombats.util.Util;
 
 import java.util.*;
 
-public final class CombatPlayerData extends CombatData {
+public final class DmCombatPlayerData extends CombatData {
 
     private final Set<UUID> spectators;
     private final Map<UUID, PlayerStatus> players;
     private final Map<UUID, Integer> kills;
     private final Map<UUID, PlayerState> playersStates;
 
-    public CombatPlayerData(Combat combat) {
+    public DmCombatPlayerData(Combat combat) {
         super(combat);
         this.spectators = new HashSet<>();
         this.players = new HashMap<>();
@@ -60,7 +60,8 @@ public final class CombatPlayerData extends CombatData {
 
     public void addSpectator(UUID uuid) {
         spectators.add(uuid);
-        PlayerState playerState = new DeathmatchSpectatorState(uuid);
+        Bukkit.getPlayer(uuid).setGameMode(GameMode.SPECTATOR);
+        PlayerState playerState = new DmSpectatorState(uuid);
         playerState.store();
         playersStates.put(uuid, playerState);
     }
@@ -72,13 +73,19 @@ public final class CombatPlayerData extends CombatData {
 
     public void addPlayer(UUID uuid) {
         players.put(uuid, PlayerStatus.ALIVE);
-        PlayerState playerState = new DeathmatchPlayerState(uuid);
+        PlayerState playerState = new DmState(uuid);
         playerState.store();
         playersStates.put(uuid, playerState);
     }
 
     public void removePlayer(UUID uuid) {
         playersStates.remove(uuid).restore();
+    }
+
+    public void replacePlayerToSpectators(UUID uuid) {
+        spectators.add(uuid);
+        Bukkit.getPlayer(uuid).getInventory().clear();
+        Bukkit.getPlayer(uuid).setGameMode(GameMode.SPECTATOR);
     }
 
     public void markPlayerAsKilled(UUID uuid) {
