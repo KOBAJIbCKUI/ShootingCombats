@@ -1,42 +1,29 @@
 package org.shootingcombats.shootingcombats;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 
 public final class SimpleLobbiesManager implements LobbiesManager {
     private final Set<Lobby> lobbies;
 
     public SimpleLobbiesManager() {
-        this.lobbies = new LinkedHashSet<>();
+        this.lobbies = new TreeSet<>(Comparator.comparing(Lobby::getName));
     }
 
     @Override
-    public boolean addLobby(Lobby lobby) {
-        if (!containsLobby(lobby)) {
-            lobbies.add(lobby);
-            return true;
-        }
-        return false;
+    public void addLobby(Lobby lobby) {
+        lobbies.add(lobby);
     }
 
     @Override
-    public boolean removeLobby(Lobby lobby) {
-        if (containsLobby(lobby)) {
-            lobbies.remove(lobby);
-            return true;
-        }
-        return false;
+    public void removeLobby(Lobby lobby) {
+        lobbies.remove(lobby);
     }
 
     @Override
-    public boolean removeLobby(String name) {
+    public void removeLobby(String name) {
         if (containsLobby(name)) {
             lobbies.removeIf(lobby -> lobby.getName().equals(name));
-            return true;
         }
-        return false;
     }
 
     @Override
@@ -47,6 +34,11 @@ public final class SimpleLobbiesManager implements LobbiesManager {
     @Override
     public boolean containsLobby(String name) {
         return lobbies.stream().anyMatch(lobby -> lobby.getName().equals(name));
+    }
+
+    @Override
+    public Optional<Lobby> getLobby(String name) {
+        return lobbies.stream().filter(lobby -> lobby.getName().equals(name)).findFirst();
     }
 
     @Override
