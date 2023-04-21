@@ -2,6 +2,7 @@ package org.shootingcombats.shootingcombats;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.shootingcombats.shootingcombats.data.DmLobbyPlayerData;
 import org.shootingcombats.shootingcombats.data.PluginConfig;
 import org.shootingcombats.shootingcombats.util.TypedProperty;
 import org.shootingcombats.shootingcombats.util.TypedPropertyImpl;
@@ -13,10 +14,12 @@ import java.util.concurrent.TimeUnit;
 public final class DeathmatchLobby implements Lobby {
 
     private final Map<String, TypedProperty> lobbyProperties;
-    private final Map<UUID, PlayerStatus> players;
     private final List<CombatMap> combatMaps;
     private final String type;
-    private final DeathmatchLobbyBoard lobbyBoard;
+    private final DmLobbyBoard lobbyBoard;
+    private final DmLobbyBar lobbyBar;
+    private final DmLobbyPlayerData lobbyPlayerData;
+    private final LobbiesManager lobbiesManager;
     private String name;
     private long combatDurationMinutes;
     private UUID owner;
@@ -25,15 +28,21 @@ public final class DeathmatchLobby implements Lobby {
     private Combat currentCombat;
     private Location lobbySpawn;
 
-    private DeathmatchLobby(String name) {
-        this.name = name;
+    public DeathmatchLobby(String name, UUID owner, LobbiesManager lobbiesManager) {
+        this.name = Objects.requireNonNull(name);
+        this.lobbiesManager = Objects.requireNonNull(lobbiesManager);
+        this.owner = Objects.requireNonNull(owner);
         this.type = "Deathmatch";
+
         this.maxPlayers = Math.min(8, Bukkit.getMaxPlayers());
         this.lobbyStatus = LobbyStatus.NOT_READY;
-        this.players = new HashMap<>();
         this.lobbyProperties = new LinkedHashMap<>();
         this.combatMaps = new ArrayList<>();
-        setCombatDuration(TimeUnit.MINUTES, PluginConfig.dmCombatDurMinutes);
+        this.combatDurationMinutes = PluginConfig.dmCombatDurMinutes;
+        this.lobbyPlayerData = new DmLobbyPlayerData(this);
+
+        this.lobbyBoard = new DmLobbyBoard();
+        this.lobbyBar = new DmLobbyBar(name, owner, lobbyStatus);
 
         lobbyProperties.put("final-teleport", new TypedPropertyImpl(PluginConfig.dmFinalTeleport));
         lobbyProperties.put("minutes-to-final-tp", new TypedPropertyImpl(PluginConfig.dmMinutesToFinalTp));
@@ -41,20 +50,28 @@ public final class DeathmatchLobby implements Lobby {
         lobbyProperties.put("minutes-to-tags", new TypedPropertyImpl(PluginConfig.dmMinutesToTags));
         lobbyProperties.put("spectate-after-death", new TypedPropertyImpl(PluginConfig.dmDeathSpectate));
 
-        this.lobbyBoard = new DeathmatchLobbyBoard();
-    }
-
-    public static DeathmatchLobby newLobby(String name) {
-        return new DeathmatchLobby(Objects.requireNonNull(name));
+        joinLobby(owner);
+        lobbiesManager.addLobby(this);
     }
 
     @Override
     public String getName() {
         return this.name;
     }
+
     @Override
-    public void setName(String name) {
+    public void setName(UUID executor, String name) {
+        if (executor.equals(owner)) {
+            Util.sendMessage(executor, "Only owner of lobby can do this!");
+            return;
+        }
+        if ("".equals(name)) {
+            Util.sendMessage(executor, "Lobby name cannot be empty!");
+            return;
+        }
+        Util.sendMessage(executor, "Lobby name changed from " + this.name + " to " + name);
         this.name = name;
+        lobbyBar.setLobbyName(name);
     }
 
     @Override
@@ -63,13 +80,13 @@ public final class DeathmatchLobby implements Lobby {
     }
 
     @Override
-    public UUID getOwner() {
-        return this.owner;
-    }
-
-    @Override
-    public void setLobbySpawn(Location location) {
+    public void setLobbySpawn(UUID executor, Location location) {
+        if (!owner.equals(executor)) {
+            Util.sendMessage(executor, "Only owner of lobby can do this!");
+            return;
+        }
         this.lobbySpawn = new Location(location.getWorld(), location.getX(), location.getY(), location.getZ());
+        Util.sendMessage(executor, "Spawn location changed to [" + lobbySpawn.getX() + " " + lobbySpawn.getY() + " " + lobbySpawn.getZ() + "] (" + location.getWorld().getName() + ")");
     }
 
     @Override
@@ -78,16 +95,32 @@ public final class DeathmatchLobby implements Lobby {
     }
 
     @Override
-    public void setOwner(UUID owner) {
-        this.owner = owner;
-        this.lobbyBoard.setOwner(owner);
+    public void setOwner(UUID executor, UUID newOwner) {
+        if (!owner.equals(executor)) {
+            Util.sendMessage(executor, "Only owner of lobby can do this!");
+            return;
+        }
+        Util.sendMessage(executor, "You are no owner of lobby " + this.name + " anymore");
+        Util.sendMessage(lobbyPlayerData.getPlayers(PlayerStatus.READY), Bukkit.getPlayer(newOwner).getName() + " is now owner of this lobby");
+        Util.sendMessage(lobbyPlayerData.getPlayers(PlayerStatus.NOT_READY), Bukkit.getPlayer(newOwner).getName() + " is now owner of this lobby");
+
+        this.owner = newOwner;
+        this.lobbyBoard.setOwner(newOwner);
+        this.lobbyBar.setOwner(newOwner);
     }
 
     @Override
-    public void setProperty(String property, TypedProperty value) {
-        if (lobbyProperties.containsKey(property)) {
-            lobbyProperties.put(property, value);
+    public void setProperty(UUID executor, String property, TypedProperty value) {
+        if (owner.equals(executor)) {
+            Util.sendMessage(executor, "Only owner of lobby can do this!");
+            return;
         }
+        if (!lobbyProperties.containsKey(property)) {
+            Util.sendMessage(executor, "This lobby doesn't contain property " + property + "!");
+            return;
+        }
+        lobbyProperties.put(property, value);
+        Util.sendMessage(executor, "Property " + property + " successfully set to " + value.getValue(value.getValueClass()));
     }
 
     @Override
@@ -102,49 +135,67 @@ public final class DeathmatchLobby implements Lobby {
 
     @Override
     public void joinLobby(UUID uuid) {
-        players.put(uuid, PlayerStatus.NOT_READY);
-        this.lobbyBoard.addPlayerToBoard(uuid);
-        this.lobbyBoard.setPlayerStatus(uuid, PlayerStatus.NOT_READY);
-        updateLobbyStatus();
-        Util.log(Bukkit.getPlayer(uuid).getName() + " joined lobby " + this.name);
-        for (Map.Entry<UUID, PlayerStatus> entry : players.entrySet()) {
-            if (entry.getValue() != PlayerStatus.IN_COMBAT) {
-                Util.sendMessage(uuid, Bukkit.getPlayer(uuid).getName() + " joined lobby");
-            }
+        if (isPlayerInLobby(uuid)) {
+            Util.sendMessage(uuid, "You are already in lobby " + this.name + "!");
+            return;
         }
+        if (lobbyPlayerData.getPlayerNumber() >= maxPlayers) {
+            Util.sendMessage(uuid, "Lobby " + this.name + " is full!");
+            return;
+        }
+        Util.sendMessage(lobbyPlayerData.getPlayers(PlayerStatus.READY), Bukkit.getPlayer(uuid).getName() + " joined lobby");
+        Util.sendMessage(lobbyPlayerData.getPlayers(PlayerStatus.NOT_READY), Bukkit.getPlayer(uuid).getName() + " joined lobby");
+        Util.sendMessage(uuid, "You joined lobby " + this.name);
+        lobbyPlayerData.addPlayer(uuid);
+        lobbyBoard.createEntriesForPlayer(uuid);
+        lobbyBoard.addPlayerToBoard(uuid);
+        lobbyBar.addPlayerToBar(uuid);
+        setPlayerStatus(uuid, PlayerStatus.NOT_READY);
+        updateLobbyStatus();
+        //Util.log(Bukkit.getPlayer(uuid).getName() + " joined lobby " + this.name);
+
     }
 
     @Override
     public void leaveLobby(UUID uuid) {
-        players.remove(uuid);
-        this.lobbyBoard.removePlayerFromBoard(uuid);
-
+        if (!isPlayerInLobby(uuid)) {
+            Util.sendMessage(uuid, "You are not in lobby " + this.name + "!");
+            return;
+        }
+        Util.sendMessage(lobbyPlayerData.getPlayers(PlayerStatus.READY), Bukkit.getPlayer(uuid).getName() + " left lobby");
+        Util.sendMessage(lobbyPlayerData.getPlayers(PlayerStatus.NOT_READY), Bukkit.getPlayer(uuid).getName() + " left lobby");
+        Util.sendMessage(uuid, "You successfully left lobby " + this.name);
+        lobbyPlayerData.removePlayer(uuid);
+        lobbyBoard.removePlayerFromBoard(uuid);
+        lobbyBar.removePlayerFromBar(uuid);
         if (owner.equals(uuid)) {
-            setOwner(players.keySet().stream().findFirst().orElse(null));
-            if (owner != null && players.get(owner) != PlayerStatus.IN_COMBAT) {
-                Util.sendMessage(owner, "You are owner of this lobby");
+            if (lobbyPlayerData.getPlayerNumber() > 0) {
+                setOwner(uuid, lobbyPlayerData.getPlayers().stream().findFirst().get());
+            } else {
+                dismissLobby(uuid);
             }
         }
 
         Util.log(Bukkit.getPlayer(uuid).getName() + " left lobby " + this.name);
-
-        for (Map.Entry<UUID, PlayerStatus> entry : players.entrySet()) {
-            if (entry.getValue() != PlayerStatus.IN_COMBAT) {
-                Util.sendMessage(uuid, Bukkit.getPlayer(uuid).getName() + " left lobby");
-            }
-        }
     }
 
     @Override
     public int getPlayersNumber() {
-        return players.size();
+        return lobbyPlayerData.getPlayerNumber();
     }
 
     @Override
-    public void setMaxPlayers(int number) {
-        if (number >= 1 && number <= Bukkit.getServer().getMaxPlayers()) {
-            this.maxPlayers = number;
+    public void setMaxPlayers(UUID executor, int number) {
+        if (owner.equals(executor)) {
+            Util.sendMessage(executor, "Only owner of lobby can do this!");
+            return;
         }
+        if (number < 1 && number > Bukkit.getServer().getMaxPlayers()) {
+            Util.sendMessage(executor, "Max players number must be in range from 1 to " + Bukkit.getServer().getMaxPlayers() + "!");
+            return;
+        }
+        this.maxPlayers = number;
+        Util.sendMessage(executor, "Max players number is set to " + number);
     }
 
     @Override
@@ -153,10 +204,17 @@ public final class DeathmatchLobby implements Lobby {
     }
 
     @Override
-    public void addCombatMap(CombatMap combatMap) {
-        if (!containsCombatMap(combatMap)) {
-            this.combatMaps.add(combatMap);
+    public void addCombatMap(UUID executor, CombatMap combatMap) {
+        if (owner.equals(executor)) {
+            Util.sendMessage(executor, "Only owner of lobby can do this!");
+            return;
         }
+        if (containsCombatMap(combatMap)) {
+            Util.sendMessage(executor, "Lobby already contains map " + combatMap.getName() + "!");
+            return;
+        }
+        this.combatMaps.add(combatMap);
+        Util.sendMessage(executor, "Map " + combatMap.getName() + " successfully added");
     }
 
     @Override
@@ -165,15 +223,30 @@ public final class DeathmatchLobby implements Lobby {
     }
 
     @Override
-    public void removeCombatMap(CombatMap combatMap) {
+    public void removeCombatMap(UUID executor, CombatMap combatMap) {
+        if (owner.equals(executor)) {
+            Util.sendMessage(executor, "Only owner of lobby can do this!");
+            return;
+        }
+        if (!containsCombatMap(combatMap)) {
+            Util.sendMessage(executor, "Lobby doesn't contain map " + combatMap.getName());
+            return;
+        }
         this.combatMaps.remove(combatMap);
+        Util.sendMessage(executor, "Map " + combatMap.getName() + " successfully removed");
     }
 
     @Override
-    public void removeCombatMap(int index) {
-        if (index > 0 && index < combatMaps.size()) {
-            this.combatMaps.remove(index - 1);
+    public void removeCombatMap(UUID executor, int index) {
+        if (owner.equals(executor)) {
+            Util.sendMessage(executor, "Only owner of lobby can do this!");
+            return;
         }
+        if (index <= 0 && index >= combatMaps.size()) {
+            Util.sendMessage(executor, "Lobby doesn't contain map with index " + index);
+        }
+        CombatMap removedMap = this.combatMaps.remove(index - 1);
+        Util.sendMessage(executor, "Map " + removedMap.getName() + " successfully removed");
     }
 
     @Override
@@ -187,24 +260,18 @@ public final class DeathmatchLobby implements Lobby {
     }
 
     @Override
-    public void setCombatDuration(TimeUnit timeUnit, long timeInTimeUnits) {
-        long result = timeUnit.toMinutes(timeInTimeUnits);
-        if (result >= 1 && result <= PluginConfig.gbMaxCombatDurMinutes) {
-            this.combatDurationMinutes = result;
+    public void setCombatDuration(UUID executor, TimeUnit timeUnit, long timeInTimeUnits) {
+        if (owner.equals(executor)) {
+            Util.sendMessage(executor, "Only owner of lobby can do this!");
+            return;
         }
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        DeathmatchLobby that = (DeathmatchLobby) o;
-        return name.equals(that.name);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(name);
+        long result = timeUnit.toMinutes(timeInTimeUnits);
+        if (result < 1 && result > PluginConfig.gbMaxCombatDurMinutes) {
+            Util.sendMessage(executor, "Combat duration must be in range from 1 to " + PluginConfig.gbMaxCombatDurMinutes + " minutes!");
+            return;
+        }
+        this.combatDurationMinutes = result;
+        Util.sendMessage(executor, "Combat duration set to " + result + " minutes!");
     }
 
     @Override
@@ -217,19 +284,19 @@ public final class DeathmatchLobby implements Lobby {
         return this.lobbyStatus;
     }
 
-    @Override
-    public void setLobbyStatus(LobbyStatus lobbyStatus) {
-        this.lobbyStatus = lobbyStatus;
-    }
+//    @Override
+//    public void setLobbyStatus(LobbyStatus lobbyStatus) {
+//        this.lobbyStatus = lobbyStatus;
+//    }
 
     @Override
     public boolean isPlayerInLobby(UUID uuid) {
-        return players.containsKey(uuid);
+        return lobbyPlayerData.containsPlayer(uuid);
     }
 
     @Override
     public Collection<UUID> getPlayers() {
-        return new HashSet<>(players.keySet());
+        return lobbyPlayerData.getPlayers();
     }
 
     @Override
@@ -238,15 +305,27 @@ public final class DeathmatchLobby implements Lobby {
     }
 
     @Override
-    public void startCombat(CombatMap combatMap) {
+    public void startCombat(UUID executor, CombatMap combatMap) {
+        if (owner.equals(executor)) {
+            Util.sendMessage(executor, "Only owner of lobby can do this!");
+            return;
+        }
+        if (!containsCombatMap(combatMap)) {
+            Util.sendMessage(executor, "This lobby doesn't contain map " + combatMap.getName());
+            return;
+        }
+        if (lobbyPlayerData.getPlayerNumber() > combatMap.spawnsNumber()) {
+            Util.sendMessage(executor, combatMap.getName() + " has too few spawns");
+            return;
+        }
         switch (lobbyStatus) {
             case READY: {
-                for (UUID uuid : players.keySet()) {
+                for (UUID uuid : lobbyPlayerData.getPlayers()) {
                     setPlayerStatus(uuid, PlayerStatus.IN_COMBAT);
                 }
                 Util.sendMessage(owner, "You successfully started the combat");
 
-                this.currentCombat = new DeathmatchCombat(this, players.keySet(), combatDurationMinutes, lobbyProperties, combatMap);
+                this.currentCombat = new DeathmatchCombat(this, lobbyPlayerData.getPlayers(), combatDurationMinutes, lobbyProperties, combatMap);
                 currentCombat.start();
                 break;
             }
@@ -264,32 +343,87 @@ public final class DeathmatchLobby implements Lobby {
     }
 
     @Override
-    public void stopCombat() {
-        if (lobbyStatus == LobbyStatus.RUNNING) {
-            currentCombat.forcedStop();
+    public void stopCombat(UUID executor) {
+        if (owner.equals(executor)) {
+            Util.sendMessage(executor, "Only owner of lobby can do this!");
+            return;
+        }
+        if (lobbyStatus != LobbyStatus.RUNNING) {
+            Util.sendMessage(executor, "There are no combats in lobby " + this.name);
+            return;
+        }
+        currentCombat.forcedStop();
+        Util.sendMessage(executor, "You successfully stopped the combat");
+    }
+
+    @Override
+    public void setPlayerStatus(UUID player, PlayerStatus playerStatus) {
+        lobbyPlayerData.setPlayerStatus(player, playerStatus);
+        lobbyBoard.setPlayerStatus(player, playerStatus);
+        updateLobbyStatus();
+    }
+
+    public void prepareForCombat(UUID uuid) {
+        if (currentCombat == null) {
+            return;
+        }
+        setPlayerStatus(uuid, PlayerStatus.IN_COMBAT);
+        lobbyBar.removePlayerFromBar(uuid);
+    }
+
+    public void unprepareFromCombat(UUID uuid) {
+        if (currentCombat == null) {
+            return;
+        }
+        setPlayerStatus(uuid, PlayerStatus.NOT_READY);
+        lobbyBar.addPlayerToBar(uuid);
+    }
+
+    @Override
+    public void dismissLobby(UUID executor) {
+        if (owner.equals(executor)) {
+            Util.sendMessage(executor, "Only owner of lobby can do this!");
+            return;
+        }
+        for (UUID uuid : new HashSet<>(lobbyPlayerData.getPlayers())) {
+            setPlayerStatus(uuid, PlayerStatus.NA);
+            lobbyPlayerData.removePlayer(uuid);
+            lobbyBoard.removePlayerFromBoard(uuid);
+            //TODO: change to world where player come from
+            Bukkit.getPlayer(uuid).teleport(lobbySpawn.getWorld().getSpawnLocation());
+        }
+        lobbiesManager.removeLobby(this);
+    }
+
+    private void updateLobbyStatus() {
+        if (lobbyPlayerData.getPlayers(PlayerStatus.IN_COMBAT).size() > 0) {
+            lobbyStatus = LobbyStatus.RUNNING;
+            lobbyBar.setLobbyStatus(lobbyStatus);
+            return;
+        }
+
+        if (lobbyPlayerData.getPlayers(PlayerStatus.NOT_READY).size() > 0) {
+            lobbyStatus = LobbyStatus.NOT_READY;
+            lobbyBar.setLobbyStatus(lobbyStatus);
+            return;
+        }
+
+        if (lobbyPlayerData.getPlayers(PlayerStatus.READY).size() == lobbyPlayerData.getPlayerNumber()) {
+            lobbyStatus = LobbyStatus.READY;
+            lobbyBar.setLobbyStatus(lobbyStatus);
         }
     }
 
     @Override
-    public void setPlayerStatus(UUID uuid, PlayerStatus playerStatus) {
-        players.put(uuid, playerStatus);
-        this.lobbyBoard.setPlayerStatus(uuid, playerStatus);
-        updateLobbyStatus();
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        DeathmatchLobby that = (DeathmatchLobby) o;
+        return name.equals(that.name);
     }
 
-    private void updateLobbyStatus() {
-        if (players.values().stream().anyMatch(status -> status == PlayerStatus.IN_COMBAT)) {
-            lobbyStatus = LobbyStatus.RUNNING;
-            return;
-        }
-
-        if (players.values().stream().anyMatch(status -> status == PlayerStatus.NOT_READY)) {
-            lobbyStatus = LobbyStatus.NOT_READY;
-            return;
-        }
-
-        if (players.values().stream().allMatch(status -> status == PlayerStatus.READY)) {
-            lobbyStatus = LobbyStatus.READY;
-        }
+    @Override
+    public int hashCode() {
+        return Objects.hash(name);
     }
 }

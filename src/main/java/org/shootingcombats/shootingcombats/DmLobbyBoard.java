@@ -2,7 +2,6 @@ package org.shootingcombats.shootingcombats;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Scoreboard;
@@ -10,14 +9,14 @@ import org.bukkit.scoreboard.Team;
 
 import java.util.UUID;
 
-public final class DeathmatchLobbyBoard {
+public final class DmLobbyBoard {
 
     private final Scoreboard scoreboard;
     private final Objective winsObjective;
     private final Team ready, notReady, inCombat;
     private UUID owner;
 
-    public DeathmatchLobbyBoard() {
+    public DmLobbyBoard() {
         this.scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
 
         this.ready = this.scoreboard.registerNewTeam("Ready");
@@ -32,15 +31,19 @@ public final class DeathmatchLobbyBoard {
         winsObjective.setDisplaySlot(DisplaySlot.SIDEBAR);
     }
 
-    public void addPlayerToBoard(UUID uuid) {
-        Player player = Bukkit.getPlayer(uuid);
-        player.setScoreboard(this.scoreboard);
+    public void createEntriesForPlayer(UUID uuid) {
         scoreboard.getObjective(winsObjective.getName()).getScore(Bukkit.getPlayer(uuid).getName()).setScore(0);
+    }
 
+    public void addPlayerToBoard(UUID uuid) {
+        Bukkit.getPlayer(uuid).setScoreboard(this.scoreboard);
     }
 
     public void removePlayerFromBoard(UUID uuid) {
-        scoreboard.resetScores(Bukkit.getPlayer(uuid).getName());
+        String playerName = Bukkit.getPlayer(uuid).getName();
+        scoreboard.getEntryTeam(playerName).removeEntry(playerName);
+        scoreboard.resetScores(playerName);
+
     }
 
     public void setOwner(UUID uuid) {
