@@ -9,6 +9,7 @@ import org.shootingcombats.shootingcombats.command.commands.LobbyParentCommand;
 import org.shootingcombats.shootingcombats.command.commands.RemoveLobbyCommand;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
@@ -62,16 +63,33 @@ public final class PluginCommandExecutor implements CommandExecutor, TabComplete
         String partialArg;
         int lastIndex = 0;
 
-        if (args.length == 0 || (partialArg = args[lastIndex = args.length - 1]).trim().isEmpty()) {
-
+        if (args.length == 0 || (partialArg = args[lastIndex = args.length - 1]).trim().isEmpty() ) {
+            if (lastIndex == 0) {
+                return mainCommands.stream()
+                        .filter(cmd -> cmd.hasPermission(sender))
+                        .map(cmd -> cmd.getName().toLowerCase(Locale.ROOT))
+                        .collect(Collectors.toList());
+            }
             return mainCommands.stream()
-                    .map(ICommand::getName)
+                    .filter(cmd -> cmd.hasPermission(sender))
+                    .filter(cmd -> cmd.getName().equalsIgnoreCase(args[0]))
+                    .findFirst()
+                    .map(cmd -> cmd.tabComplete(plugin, sender, Arrays.copyOfRange(args, 1, args.length)))
+                    .orElse(Collections.emptyList());
+        }
+        if (lastIndex == 0) {
+            return mainCommands.stream()
+                    .filter(cmd -> cmd.hasPermission(sender))
+                    .filter(cmd -> cmd.getName().toLowerCase(Locale.ROOT).startsWith(partialArg.toLowerCase(Locale.ROOT)))
+                    .map(cmd -> cmd.getName().toLowerCase(Locale.ROOT))
                     .collect(Collectors.toList());
         }
         return mainCommands.stream()
-                .map(ICommand::getName)
-                .filter(commandName -> commandName.toLowerCase(Locale.ROOT).startsWith(partialArg.toLowerCase(Locale.ROOT)))
-                .collect(Collectors.toList());
+                .filter(cmd -> cmd.hasPermission(sender))
+                .filter(cmd -> cmd.getName().equalsIgnoreCase(args[0]))
+                .findFirst()
+                .map(cmd -> cmd.tabComplete(plugin, sender, Arrays.copyOfRange(args, 1, args.length)))
+                .orElse(Collections.emptyList());
     }
 
     private void sendUsage(CommandSender commandSender, String label) {

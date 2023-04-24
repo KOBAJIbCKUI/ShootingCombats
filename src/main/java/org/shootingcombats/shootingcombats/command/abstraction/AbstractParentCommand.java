@@ -125,13 +125,13 @@ public abstract class AbstractParentCommand extends AbstractCommand {
                                 .filter(command -> command.hasPermission(commandSender))
                                 .filter(command -> command.getName().equalsIgnoreCase(args[0]))
                                 .findFirst()
-                                .map(command -> command.tabComplete(plugin, commandSender, Arrays.copyOfRange(args, 2, args.length)))
+                                .map(command -> command.tabComplete(plugin, commandSender, Arrays.copyOfRange(args, 1, args.length)))
                                 .orElse(Collections.emptyList());
                     }
                     default: throw new AssertionError("Reached not reachable code");
                 }
             }
-            default: throw new AssertionError(this.commandType);
+            default: throw new AssertionError("Unknown command type: " + this.commandType);
         }
     }
 
