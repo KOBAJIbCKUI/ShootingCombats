@@ -392,7 +392,7 @@ public final class DeathmatchLobby implements Lobby {
 
     @Override
     public void dismissLobby(UUID executor) {
-        if (owner.equals(executor)) {
+        if (!owner.equals(executor)) {
             Util.sendMessage(executor, "Only owner of lobby can do this!");
             return;
         }
