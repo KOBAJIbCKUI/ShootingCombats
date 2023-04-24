@@ -27,11 +27,6 @@ public final class LobbyJoinCommand extends AbstractSingleCommand {
         }
 
         UUID executor = ((Player) commandSender).getUniqueId();
-        if (hasPermission(commandSender)) {
-            Util.sendMessage(executor, "You have no permission to use this command!");
-            return false;
-        }
-
         if (args.length != 1) {
             sendUsage(commandSender, label);
             return false;
