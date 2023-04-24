@@ -30,7 +30,7 @@ public final class DmLobbyPlayerData extends LobbyData {
 
     public void addPlayer(UUID uuid) {
         players.put(uuid, Lobby.PlayerStatus.NA);
-        PlayerState playerState = new DmState(uuid);
+        PlayerState playerState = new DmLobbyPlayerState(uuid);
         playerState.store();
         playersStates.put(uuid, playerState);
     }
