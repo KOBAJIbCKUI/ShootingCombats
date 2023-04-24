@@ -57,7 +57,7 @@ public abstract class AbstractParentCommand extends AbstractCommand {
                                     .map(command -> command.getName().toLowerCase(Locale.ROOT))
                                     .collect(Collectors.toList());
                         }
-                        case 2: {
+                        default: {
                             return getChildren().stream()
                                     .filter(command -> command.hasPermission(commandSender))
                                     .filter(command -> command.getName().equalsIgnoreCase(args[1]))
@@ -65,7 +65,6 @@ public abstract class AbstractParentCommand extends AbstractCommand {
                                     .map(command -> command.tabComplete(plugin, commandSender, Arrays.copyOfRange(args, 2, args.length)))
                                     .orElse(Collections.emptyList());
                         }
-                        default: throw new AssertionError("Reached not reachable code");
                     }
                 }
                 switch (lastIndex) {
@@ -81,7 +80,7 @@ public abstract class AbstractParentCommand extends AbstractCommand {
                                 .map(command -> command.getName().toLowerCase(Locale.ROOT))
                                 .collect(Collectors.toList());
                     }
-                    case 2: {
+                    default: {
                         return getChildren().stream()
                                 .filter(command -> command.hasPermission(commandSender))
                                 .filter(command -> command.getName().equalsIgnoreCase(args[1]))
@@ -89,7 +88,6 @@ public abstract class AbstractParentCommand extends AbstractCommand {
                                 .map(command -> command.tabComplete(plugin, commandSender, Arrays.copyOfRange(args, 2, args.length)))
                                 .orElse(Collections.emptyList());
                     }
-                    default: throw new AssertionError("Reached not reachable code");
                 }
             }
             case WITHOUT_TARGET: {
