@@ -95,7 +95,9 @@ public final class PluginCommandExecutor implements CommandExecutor, TabComplete
     private void sendUsage(CommandSender commandSender, String label) {
         commandSender.sendMessage("Lobby sub commands: (sc ...)");
         for (ICommand subCommand : mainCommands) {
-            commandSender.sendMessage(subCommand.getName());
+            if (commandSender.hasPermission(subCommand.getPermission())) {
+                commandSender.sendMessage(subCommand.getName());
+            }
         }
     }
 }

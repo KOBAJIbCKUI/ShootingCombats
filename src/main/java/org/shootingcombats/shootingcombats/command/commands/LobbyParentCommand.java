@@ -9,6 +9,7 @@ import org.shootingcombats.shootingcombats.lobby.Lobby;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 public final class LobbyParentCommand extends AbstractParentCommand {
@@ -35,7 +36,9 @@ public final class LobbyParentCommand extends AbstractParentCommand {
     public void sendUsage(CommandSender commandSender, String label) {
         commandSender.sendMessage("Lobby sub commands: (" + getUsage() + " ...)");
         for (ICommand subCommand : getChildren()) {
-            commandSender.sendMessage(subCommand.getName());
+            if (commandSender.hasPermission(subCommand.getPermission())) {
+                commandSender.sendMessage(subCommand.getName().toLowerCase(Locale.ROOT));
+            }
         }
     }
 }
