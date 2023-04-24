@@ -1,6 +1,5 @@
 package org.shootingcombats.shootingcombats.manager;
 
-import org.shootingcombats.shootingcombats.manager.CombatMapManager;
 import org.shootingcombats.shootingcombats.map.CombatMap;
 
 import java.util.Collections;
@@ -12,7 +11,7 @@ public final class CombaMapManagerImpl implements CombatMapManager {
 
     private final Map<CombatMap, CombatMapStatus> maps;
 
-    CombaMapManagerImpl() {
+    public CombaMapManagerImpl() {
         this.maps = new LinkedHashMap<>();
     }
 

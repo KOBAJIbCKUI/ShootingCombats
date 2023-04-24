@@ -13,6 +13,7 @@ public interface Lobby {
     String getName();
     void setName(UUID executor, String name);
     String getType();
+    UUID getOwner();
     void setOwner(UUID executor, UUID player);
     void setLobbySpawn(UUID executor, Location location);
     Location getLobbySpawn();
@@ -64,5 +65,21 @@ public interface Lobby {
         NOT_READY,
         IN_COMBAT,
         NA
+    }
+
+    enum LobbyType {
+
+        DEATHMATCH("deathmatch");
+
+        private final String type;
+
+        LobbyType(String type) {
+            this.type = type;
+        }
+
+        @Override
+        public String toString() {
+            return this.type;
+        }
     }
 }

@@ -116,6 +116,11 @@ public final class DeathmatchLobby implements Lobby {
     }
 
     @Override
+    public UUID getOwner() {
+        return this.owner;
+    }
+
+    @Override
     public void setProperty(UUID executor, String property, TypedProperty value) {
         if (owner.equals(executor)) {
             Util.sendMessage(executor, "Only owner of lobby can do this!");

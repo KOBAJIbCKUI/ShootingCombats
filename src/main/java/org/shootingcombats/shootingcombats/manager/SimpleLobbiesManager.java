@@ -35,7 +35,7 @@ public final class SimpleLobbiesManager implements LobbiesManager {
 
     @Override
     public boolean containsLobby(String name) {
-        return lobbies.stream().anyMatch(lobby -> lobby.getName().equals(name));
+        return lobbies.stream().anyMatch(lobby -> lobby.getName().equalsIgnoreCase(name));
     }
 
     @Override
@@ -44,7 +44,7 @@ public final class SimpleLobbiesManager implements LobbiesManager {
     }
 
     @Override
-    public Collection<Lobby> getLobbies() {
-        return Collections.unmodifiableSet(lobbies);
+    public List<Lobby> getLobbies() {
+        return new ArrayList<>(lobbies);
     }
 }
