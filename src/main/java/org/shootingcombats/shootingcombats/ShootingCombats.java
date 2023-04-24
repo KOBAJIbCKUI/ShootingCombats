@@ -2,6 +2,8 @@ package org.shootingcombats.shootingcombats;
 
 import org.bukkit.Bukkit;
 import org.bukkit.command.PluginCommand;
+import org.bukkit.permissions.Permission;
+import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.shootingcombats.shootingcombats.data.MapsConfig;
 import org.shootingcombats.shootingcombats.data.PluginConfig;
@@ -38,6 +40,7 @@ public final class ShootingCombats extends JavaPlugin {
         lobbiesManager = new SimpleLobbiesManager();
 
         registerCommands();
+        addCommandPermissions();
 
         Util.log("Plugin enabled");
     }
@@ -55,6 +58,17 @@ public final class ShootingCombats extends JavaPlugin {
         }
         commandManager = new PluginCommandExecutor(plugin, mainCommand);
         commandManager.register();
+    }
+
+    private void addCommandPermissions() {
+        PluginManager pluginManager = this.getServer().getPluginManager();
+        pluginManager.addPermission(new Permission("sc"));
+        pluginManager.addPermission(new Permission("sc.createlobby"));
+        pluginManager.addPermission(new Permission("sc.removelobby"));
+        pluginManager.addPermission(new Permission("sc.lobbies"));
+        pluginManager.addPermission(new Permission("sc.lobby"));
+        pluginManager.addPermission(new Permission("sc.lobby.join"));
+        pluginManager.addPermission(new Permission("sc.lobby.leave"));
     }
 
     public static ShootingCombats getPlugin() {
