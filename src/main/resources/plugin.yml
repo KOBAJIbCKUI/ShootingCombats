@@ -1,3 +1,9 @@
 name: ShootingCombats
 version: '${project.version}'
 main: org.shootingcombats.shootingcombats.ShootingCombats
+
+commands:
+  sc:
+    description: Main command of ShootingCombats plugin
+    permission: sc
+    usage: sc ...
