@@ -77,7 +77,7 @@ public final class DmState implements PlayerState {
         this.itemInOffHand = new ItemStack(playerInventory.getItemInOffHand());
         ItemStack[] hotbarContents = new ItemStack[storageContents.length];
         for (int i = 0; i < 9; i++) {
-            hotbarContents[i] = new ItemStack(storageContents[i]);
+            hotbarContents[i] = storageContents[i] == null ? null : new ItemStack(storageContents[i]);
         }
         playerInventory.clear();
         playerInventory.setStorageContents(hotbarContents);
