@@ -1,13 +1,11 @@
 package org.shootingcombats.shootingcombats;
 
 import org.bukkit.Bukkit;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.shootingcombats.shootingcombats.data.MapsConfig;
 import org.shootingcombats.shootingcombats.data.PluginConfig;
-import org.shootingcombats.shootingcombats.manager.CombaMapManagerImpl;
-import org.shootingcombats.shootingcombats.manager.CombatMapManager;
-import org.shootingcombats.shootingcombats.manager.LobbiesManager;
-import org.shootingcombats.shootingcombats.manager.SimpleLobbiesManager;
+import org.shootingcombats.shootingcombats.manager.*;
 import org.shootingcombats.shootingcombats.util.Util;
 
 public final class ShootingCombats extends JavaPlugin {
@@ -18,6 +16,7 @@ public final class ShootingCombats extends JavaPlugin {
     private static PluginConfig pluginConfig;
     private static CombatMapManager mapsManager;
     private static LobbiesManager lobbiesManager;
+    private static PluginCommandExecutor commandManager;
 
     @Override
     public void onEnable() {
@@ -38,12 +37,24 @@ public final class ShootingCombats extends JavaPlugin {
         mapsConfig = new MapsConfig();
         lobbiesManager = new SimpleLobbiesManager();
 
+        registerCommands();
+
         Util.log("Plugin enabled");
     }
 
     @Override
     public void onDisable() {
         Util.log("Plugin disabled");
+    }
+
+    private void registerCommands() {
+        PluginCommand mainCommand = getCommand("sc");
+        if (mainCommand == null) {
+            Util.warning("Unable to register /sc command!");
+            return;
+        }
+        commandManager = new PluginCommandExecutor(plugin, mainCommand);
+        commandManager.register();
     }
 
     public static ShootingCombats getPlugin() {
