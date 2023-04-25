@@ -19,18 +19,13 @@ public interface Lobby {
     Location getLobbySpawn();
     void setProperty(UUID executor, String property, TypedProperty value);
     Optional<TypedProperty> getProperty(String property);
+    Map<String, TypedProperty> getProperties();
     boolean containsProperty(String property);
     void joinLobby(UUID player);
     void leaveLobby(UUID player);
     int getPlayersNumber();
     void setMaxPlayers(UUID executor, int number);
     int getMaxPlayers();
-    void addCombatMap(UUID executor, CombatMap combatMap);
-    boolean containsCombatMap(CombatMap combatMap);
-    void removeCombatMap(UUID executor, CombatMap combatMap);
-    void removeCombatMap(UUID executor, int index);
-    Collection<CombatMap> getCombatMaps();
-    int getCombatMapsNumber();
     void setCombatDuration(UUID executor, TimeUnit timeUnit, long timeInTimeUnits);
     long getCombatDuration(TimeUnit timeUnit);
     LobbyStatus getLobbyStatus();
@@ -41,6 +36,7 @@ public interface Lobby {
     void startCombat(UUID executor, CombatMap combatMap);
     void stopCombat(UUID executor);
     void setPlayerStatus(UUID player, PlayerStatus playerStatus);
+    PlayerStatus getPlayerStatus(UUID uuid);
     void dismissLobby(UUID executor);
 
 
@@ -55,7 +51,8 @@ public interface Lobby {
             this.name = name;
         }
 
-        public String getName() {
+        @Override
+        public String toString() {
             return this.name;
         }
     }

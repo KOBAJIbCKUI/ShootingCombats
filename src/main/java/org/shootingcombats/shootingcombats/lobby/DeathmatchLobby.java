@@ -142,9 +142,18 @@ public final class DeathmatchLobby implements Lobby {
         return Optional.ofNullable(lobbyProperties.get(property));
     }
 
+    public Map<String, TypedProperty> getLobbyProperties() {
+        return Collections.unmodifiableMap(lobbyProperties);
+    }
+
     @Override
     public boolean containsProperty(String property) {
         return lobbyProperties.containsKey(property);
+    }
+
+    @Override
+    public Map<String, TypedProperty> getProperties() {
+        return null;
     }
 
     @Override
@@ -220,62 +229,6 @@ public final class DeathmatchLobby implements Lobby {
     }
 
     @Override
-    public void addCombatMap(UUID executor, CombatMap combatMap) {
-        if (owner.equals(executor)) {
-            Util.sendMessage(executor, "Only owner of lobby can do this!");
-            return;
-        }
-        if (containsCombatMap(combatMap)) {
-            Util.sendMessage(executor, "Lobby already contains map " + combatMap.getName() + "!");
-            return;
-        }
-        this.combatMaps.add(combatMap);
-        Util.sendMessage(executor, "Map " + combatMap.getName() + " successfully added");
-    }
-
-    @Override
-    public boolean containsCombatMap(CombatMap combatMap) {
-        return this.combatMaps.contains(combatMap);
-    }
-
-    @Override
-    public void removeCombatMap(UUID executor, CombatMap combatMap) {
-        if (owner.equals(executor)) {
-            Util.sendMessage(executor, "Only owner of lobby can do this!");
-            return;
-        }
-        if (!containsCombatMap(combatMap)) {
-            Util.sendMessage(executor, "Lobby doesn't contain map " + combatMap.getName());
-            return;
-        }
-        this.combatMaps.remove(combatMap);
-        Util.sendMessage(executor, "Map " + combatMap.getName() + " successfully removed");
-    }
-
-    @Override
-    public void removeCombatMap(UUID executor, int index) {
-        if (owner.equals(executor)) {
-            Util.sendMessage(executor, "Only owner of lobby can do this!");
-            return;
-        }
-        if (index <= 0 && index >= combatMaps.size()) {
-            Util.sendMessage(executor, "Lobby doesn't contain map with index " + index);
-        }
-        CombatMap removedMap = this.combatMaps.remove(index - 1);
-        Util.sendMessage(executor, "Map " + removedMap.getName() + " successfully removed");
-    }
-
-    @Override
-    public Collection<CombatMap> getCombatMaps() {
-        return new HashSet<>(combatMaps);
-    }
-
-    @Override
-    public int getCombatMapsNumber() {
-        return combatMaps.size();
-    }
-
-    @Override
     public void setCombatDuration(UUID executor, TimeUnit timeUnit, long timeInTimeUnits) {
         if (owner.equals(executor)) {
             Util.sendMessage(executor, "Only owner of lobby can do this!");
@@ -300,11 +253,6 @@ public final class DeathmatchLobby implements Lobby {
         return this.lobbyStatus;
     }
 
-//    @Override
-//    public void setLobbyStatus(LobbyStatus lobbyStatus) {
-//        this.lobbyStatus = lobbyStatus;
-//    }
-
     @Override
     public boolean isPlayerInLobby(UUID uuid) {
         return lobbyPlayerData.containsPlayer(uuid);
@@ -326,16 +274,13 @@ public final class DeathmatchLobby implements Lobby {
             Util.sendMessage(executor, "Only owner of lobby can do this!");
             return;
         }
-        if (!containsCombatMap(combatMap)) {
-            Util.sendMessage(executor, "This lobby doesn't contain map " + combatMap.getName());
-            return;
-        }
-        if (lobbyPlayerData.getPlayerNumber() > combatMap.spawnsNumber()) {
-            Util.sendMessage(executor, combatMap.getName() + " has too few spawns");
-            return;
-        }
         switch (lobbyStatus) {
             case READY: {
+                if (lobbyPlayerData.getPlayerNumber() > combatMap.spawnsNumber()) {
+                    Util.sendMessage(executor, combatMap.getName() + " has too few spawns");
+                    return;
+                }
+
                 for (UUID uuid : lobbyPlayerData.getPlayers()) {
                     setPlayerStatus(uuid, PlayerStatus.IN_COMBAT);
                 }
@@ -377,6 +322,11 @@ public final class DeathmatchLobby implements Lobby {
         lobbyPlayerData.setPlayerStatus(player, playerStatus);
         lobbyBoard.setPlayerStatus(player, playerStatus);
         updateLobbyStatus();
+    }
+
+    @Override
+    public PlayerStatus getPlayerStatus(UUID uuid) {
+        return lobbyPlayerData.getPlayerStatus(uuid);
     }
 
     public void prepareForCombat(UUID uuid) {

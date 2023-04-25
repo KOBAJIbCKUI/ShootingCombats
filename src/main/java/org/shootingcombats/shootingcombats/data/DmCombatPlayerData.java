@@ -86,11 +86,11 @@ public final class DmCombatPlayerData extends CombatData {
     }
 
     public void markPlayerAsKilled(UUID uuid) {
-        players.put(uuid, PlayerStatus.DEAD);
+        players.computeIfPresent(uuid, (k, v) -> PlayerStatus.DEAD);
     }
 
     public void markPlayerAsQuited(UUID uuid) {
-        players.put(uuid, PlayerStatus.QUITED);
+        players.computeIfPresent(uuid, (k, v) -> PlayerStatus.QUITED);
     }
 
     public void freezePlayers() {
