@@ -9,7 +9,7 @@ import org.bukkit.boss.BossBar;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-public class DmCombatBar {
+public final class DmCombatBar {
     private final BossBar bar;
     private final String titleFormat;
     private final long secondsToEnd;

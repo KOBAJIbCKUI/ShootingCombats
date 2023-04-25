@@ -17,7 +17,7 @@ public final class DmLobbyBar {
     public DmLobbyBar(String lobbyName, UUID owner, Lobby.LobbyStatus status) {
         this.lobbyName = "" + ChatColor.GREEN + ChatColor.BOLD + lobbyName;
         this.ownerName = "" + ChatColor.GREEN + ChatColor.BOLD + Bukkit.getPlayer(owner).getName();
-        this.statusName = status.getName();
+        this.statusName = status.toString();
         this.titleFormat = ""
                 + ChatColor.WHITE  + ChatColor.BOLD + "Lobby - %s"
                 + ChatColor.WHITE + ChatColor.BOLD +  " | "
@@ -49,7 +49,7 @@ public final class DmLobbyBar {
     }
 
     public void setLobbyStatus(Lobby.LobbyStatus status) {
-        this.statusName = status.getName();
+        this.statusName = status.toString();
         update();
     }
 
