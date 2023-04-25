@@ -29,12 +29,13 @@ public abstract class AbstractParentCommand extends AbstractCommand {
                 .orElse(null);
 
         if (subCommand == null) {
-            commandSender.sendMessage("ICommand is not recognized!");
+            commandSender.sendMessage("Command is not recognized!");
             return false;
         }
 
-        if (!subCommand.hasPermission(commandSender)) {
+        if (!commandSender.hasPermission(subCommand.getPermission())) {
             commandSender.sendMessage("You have no permission to use this command!");
+            return false;
         }
 
         return subCommand.execute(plugin, commandSender, target, label, Arrays.copyOfRange(args, commandType.minArgs, args.length));
