@@ -7,4 +7,5 @@ public interface Bound {
     Location getGreaterCorner();
     Location getLowerCorner();
     boolean isInBounds(Location location);
+    boolean checkCollision(Bound other);
 }

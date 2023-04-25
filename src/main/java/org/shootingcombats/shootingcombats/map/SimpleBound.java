@@ -61,6 +61,11 @@ public final class SimpleBound implements Bound {
     }
 
     @Override
+    public boolean checkCollision(Bound other) {
+        return other.isInBounds(getGreaterCorner()) || other.isInBounds(getLowerCorner()) || isInBounds(other.getGreaterCorner()) || isInBounds(other.getLowerCorner());
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
