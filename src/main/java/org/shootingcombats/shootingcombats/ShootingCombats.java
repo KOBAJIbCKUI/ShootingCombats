@@ -47,6 +47,8 @@ public final class ShootingCombats extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        pluginConfig.saveConfig();
+        mapsConfig.saveConfig();
         Util.log("Plugin disabled");
     }
 
@@ -63,12 +65,26 @@ public final class ShootingCombats extends JavaPlugin {
     private void addCommandPermissions() {
         PluginManager pluginManager = this.getServer().getPluginManager();
         pluginManager.addPermission(new Permission("sc"));
+        pluginManager.addPermission(new Permission("sc.ready"));
         pluginManager.addPermission(new Permission("sc.createlobby"));
         pluginManager.addPermission(new Permission("sc.removelobby"));
+        pluginManager.addPermission(new Permission("sc.createmap"));
+        pluginManager.addPermission(new Permission("sc.removemap"));
         pluginManager.addPermission(new Permission("sc.lobbies"));
         pluginManager.addPermission(new Permission("sc.lobby"));
         pluginManager.addPermission(new Permission("sc.lobby.join"));
         pluginManager.addPermission(new Permission("sc.lobby.leave"));
+        pluginManager.addPermission(new Permission("sc.lobby.info"));
+        pluginManager.addPermission(new Permission("sc.map"));
+        pluginManager.addPermission(new Permission("sc.map.info"));
+        pluginManager.addPermission(new Permission("sc.map.spawn"));
+        pluginManager.addPermission(new Permission("sc.map.spawn.add"));
+        pluginManager.addPermission(new Permission("sc.map.spawn.remove"));
+        pluginManager.addPermission(new Permission("sc.combat"));
+        pluginManager.addPermission(new Permission("sc.combat.start"));
+        pluginManager.addPermission(new Permission("sc.combat.stop"));
+        pluginManager.addPermission(new Permission("sc.combat.leave"));
+        pluginManager.addPermission(new Permission("sc.combat.spectate"));
     }
 
     public static ShootingCombats getPlugin() {

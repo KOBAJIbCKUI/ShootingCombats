@@ -3,10 +3,7 @@ package org.shootingcombats.shootingcombats.manager;
 import org.bukkit.command.*;
 import org.shootingcombats.shootingcombats.ShootingCombats;
 import org.shootingcombats.shootingcombats.command.abstraction.ICommand;
-import org.shootingcombats.shootingcombats.command.commands.CreateLobbyCommand;
-import org.shootingcombats.shootingcombats.command.commands.LobbiesCommand;
-import org.shootingcombats.shootingcombats.command.commands.LobbyParentCommand;
-import org.shootingcombats.shootingcombats.command.commands.RemoveLobbyCommand;
+import org.shootingcombats.shootingcombats.command.commands.*;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -25,10 +22,17 @@ public final class PluginCommandExecutor implements CommandExecutor, TabComplete
         this.mainPluginCommand =  mainPluginCommand;
 
         mainCommands = Arrays.asList(
-                new LobbiesCommand(),
+                new ReadyCommand(),
+                new ListLobbiesCommand(),
                 new CreateLobbyCommand(),
                 new RemoveLobbyCommand(),
-                new LobbyParentCommand()
+                new ListMapsCommand(),
+                new CreateMapCommand(),
+                new RemoveMapCommand(),
+                new LobbyParentCommand(),
+                new MapParentCommand(),
+                new MapSpawnParentCommand(),
+                new CombatParentCommand()
         );
     }
 
@@ -96,7 +100,7 @@ public final class PluginCommandExecutor implements CommandExecutor, TabComplete
         commandSender.sendMessage("Lobby sub commands: (sc ...)");
         for (ICommand subCommand : mainCommands) {
             if (commandSender.hasPermission(subCommand.getPermission())) {
-                commandSender.sendMessage(subCommand.getName());
+                commandSender.sendMessage(subCommand.getName().toLowerCase(Locale.ROOT));
             }
         }
     }
