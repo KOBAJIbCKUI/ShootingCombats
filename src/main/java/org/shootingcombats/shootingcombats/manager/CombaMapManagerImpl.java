@@ -34,6 +34,15 @@ public final class CombaMapManagerImpl implements CombatMapManager {
     }
 
     @Override
+    public boolean removeMap(String name) {
+        if (containsMap(name) && getMapStatus(name) == CombatMapStatus.FREE) {
+            maps.remove(getMap(name).get());
+            return true;
+        }
+        return false;
+    }
+
+    @Override
     public boolean containsMap(CombatMap combatMap) {
         return maps.containsKey(combatMap);
     }
@@ -41,6 +50,11 @@ public final class CombaMapManagerImpl implements CombatMapManager {
     @Override
     public boolean containsMap(String name) {
         return maps.keySet().stream().anyMatch(map -> map.getName().equals(name));
+    }
+
+    @Override
+    public int getMapsNumber() {
+        return maps.size();
     }
 
     @Override
