@@ -31,7 +31,6 @@ public final class PluginCommandExecutor implements CommandExecutor, TabComplete
                 new RemoveMapCommand(),
                 new LobbyParentCommand(),
                 new MapParentCommand(),
-                new MapSpawnParentCommand(),
                 new CombatParentCommand()
         );
     }
@@ -97,7 +96,7 @@ public final class PluginCommandExecutor implements CommandExecutor, TabComplete
     }
 
     private void sendUsage(CommandSender commandSender, String label) {
-        commandSender.sendMessage("Lobby sub commands: (sc ...)");
+        commandSender.sendMessage("sc sub commands: (sc ...)");
         for (ICommand subCommand : mainCommands) {
             if (commandSender.hasPermission(subCommand.getPermission())) {
                 commandSender.sendMessage(subCommand.getName().toLowerCase(Locale.ROOT));
