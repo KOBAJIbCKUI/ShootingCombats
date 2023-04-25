@@ -15,7 +15,7 @@ import java.util.UUID;
 public final class LobbyLeaveCommand extends AbstractSingleCommand {
 
     public LobbyLeaveCommand() {
-        super("Leave", "leave", "lobby.leave");
+        super("Leave", "leave", "sc.lobby.leave");
     }
 
     @Override
