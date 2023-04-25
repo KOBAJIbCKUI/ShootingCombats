@@ -48,7 +48,9 @@ public final class DmLobbyBoard {
     }
 
     public void setOwner(UUID uuid) {
-        scoreboard.getObjective(winsObjective.getName()).getScore(Bukkit.getPlayer(owner).getName()).setScore(0);
+        if (owner != null) {
+            scoreboard.getObjective(winsObjective.getName()).getScore(Bukkit.getPlayer(owner).getName()).setScore(0);
+        }
         scoreboard.getObjective(winsObjective.getName()).getScore(Bukkit.getPlayer(uuid).getName()).setScore(1);
         this.owner = uuid;
     }

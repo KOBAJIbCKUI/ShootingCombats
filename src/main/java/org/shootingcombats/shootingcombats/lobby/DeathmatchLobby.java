@@ -45,8 +45,10 @@ public final class DeathmatchLobby implements Lobby {
         this.lobbyProperties = new LinkedHashMap<>();
         this.combatMaps = new ArrayList<>();
         this.combatDurationMinutes = PluginConfig.dmCombatDurMinutes;
-        this.lobbyPlayerData = new DmLobbyPlayerData(this);
+        this.lobbySpawn = Bukkit.getPlayer(owner).getLocation();
+        this.lobbySpawn.setY(lobbySpawn.getY() + 1);
 
+        this.lobbyPlayerData = new DmLobbyPlayerData(this);
         this.lobbyBoard = new DmLobbyBoard();
         this.lobbyBar = new DmLobbyBar(name, owner, lobbyStatus);
 
@@ -57,6 +59,7 @@ public final class DeathmatchLobby implements Lobby {
         lobbyProperties.put("spectate-after-death", new TypedPropertyImpl(PluginConfig.dmDeathSpectate));
 
         joinLobby(owner);
+        this.lobbyBoard.setOwner(owner);
         lobbiesManager.addLobby(this);
     }
 
@@ -157,6 +160,7 @@ public final class DeathmatchLobby implements Lobby {
         Util.sendMessage(lobbyPlayerData.getPlayers(PlayerStatus.READY), Bukkit.getPlayer(uuid).getName() + " joined lobby");
         Util.sendMessage(lobbyPlayerData.getPlayers(PlayerStatus.NOT_READY), Bukkit.getPlayer(uuid).getName() + " joined lobby");
         Util.sendMessage(uuid, "You joined lobby " + this.name);
+        Bukkit.getPlayer(uuid).teleport(lobbySpawn);
         lobbyPlayerData.addPlayer(uuid);
         lobbyBoard.createEntriesForPlayer(uuid);
         lobbyBoard.addPlayerToBoard(uuid);
@@ -177,8 +181,6 @@ public final class DeathmatchLobby implements Lobby {
         Util.sendMessage(lobbyPlayerData.getPlayers(PlayerStatus.NOT_READY), Bukkit.getPlayer(uuid).getName() + " left lobby");
         Util.sendMessage(uuid, "You successfully left lobby " + this.name);
         lobbyPlayerData.removePlayer(uuid);
-        lobbyBoard.removePlayerFromBoard(uuid);
-        lobbyBar.removePlayerFromBar(uuid);
         if (owner.equals(uuid)) {
             if (lobbyPlayerData.getPlayerNumber() > 0) {
                 setOwner(uuid, lobbyPlayerData.getPlayers().stream().findFirst().get());
@@ -186,6 +188,9 @@ public final class DeathmatchLobby implements Lobby {
                 dismissLobby(uuid);
             }
         }
+        lobbyBoard.removePlayerFromBoard(uuid);
+        lobbyBar.removePlayerFromBar(uuid);
+        Bukkit.getPlayer(uuid).teleport(lobbySpawn.getWorld().getSpawnLocation());
 
         Util.log(Bukkit.getPlayer(uuid).getName() + " left lobby " + this.name);
     }
@@ -400,6 +405,7 @@ public final class DeathmatchLobby implements Lobby {
             setPlayerStatus(uuid, PlayerStatus.NA);
             lobbyPlayerData.removePlayer(uuid);
             lobbyBoard.removePlayerFromBoard(uuid);
+            lobbyBar.removePlayerFromBar(uuid);
             //TODO: change to world where player come from
             Bukkit.getPlayer(uuid).teleport(lobbySpawn.getWorld().getSpawnLocation());
         }
