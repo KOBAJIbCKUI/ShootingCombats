@@ -13,6 +13,7 @@ public interface Combat {
     Set<UUID> getPlayers();
     Set<UUID> getSpectators();
     CombatMap getCurrentCombatMap();
+    void onDeath(UUID killed);
     void onKill(UUID killer, UUID killed);
     void onQuit(UUID uuid);
     void start();
