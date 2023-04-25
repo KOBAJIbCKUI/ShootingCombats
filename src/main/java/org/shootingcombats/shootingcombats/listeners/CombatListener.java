@@ -8,10 +8,12 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.shootingcombats.shootingcombats.ShootingCombats;
 import org.shootingcombats.shootingcombats.combat.Combat;
 import org.shootingcombats.shootingcombats.lobby.Lobby;
+import org.shootingcombats.shootingcombats.util.Util;
 
 import java.util.Collections;
 import java.util.UUID;
@@ -21,6 +23,23 @@ public final class CombatListener implements Listener {
 
     public CombatListener(ShootingCombats plugin) {
         this.plugin = plugin;
+    }
+
+    @EventHandler(priority=EventPriority.LOWEST)
+    private void onPlayerCommandPreprocess(PlayerCommandPreprocessEvent event) {
+        UUID executor = event.getPlayer().getUniqueId();
+        if (ShootingCombats.getLobbiesManager().getLobbies().stream().filter(lobby -> lobby.isPlayerInLobby(executor) && lobby.getPlayerStatus(executor) == Lobby.PlayerStatus.IN_COMBAT).findFirst().orElse(null) == null) {
+            return;
+        }
+
+        String message = event.getMessage();
+
+        if (message.startsWith("/sc combat leave") || message.startsWith("/sc combat stop")) {
+            return;
+        }
+        event.setMessage("/");
+        event.setCancelled(true);
+        Util.sendMessage(executor, "You cannot use this command during combat!");
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)

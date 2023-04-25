@@ -11,6 +11,7 @@ import org.shootingcombats.shootingcombats.ShootingCombats;
 import org.shootingcombats.shootingcombats.data.DmCombatPlayerData;
 import org.shootingcombats.shootingcombats.data.PluginConfig;
 import org.shootingcombats.shootingcombats.lobby.DeathmatchLobby;
+import org.shootingcombats.shootingcombats.manager.CombatMapManager;
 import org.shootingcombats.shootingcombats.map.CombatMap;
 import org.shootingcombats.shootingcombats.map.SimpleCombatMap;
 import org.shootingcombats.shootingcombats.util.Messages;
@@ -164,6 +165,7 @@ public final class DeathmatchCombat implements Combat {
 
     @Override
     public void start() {
+        ShootingCombats.getMapsManager().setMapOccupation(currentCombatMap, CombatMapManager.CombatMapStatus.OCCUPIED);
         startCountdown();
     }
 
@@ -180,6 +182,7 @@ public final class DeathmatchCombat implements Combat {
         for (UUID uuid : spectators) {
             leaveAsSpectator(uuid);
         }
+        ShootingCombats.getMapsManager().setMapOccupation(currentCombatMap, CombatMapManager.CombatMapStatus.FREE);
     }
 
     @Override
@@ -200,7 +203,7 @@ public final class DeathmatchCombat implements Combat {
         for (UUID uuid : spectators) {
             leaveAsSpectator(uuid);
         }
-
+        ShootingCombats.getMapsManager().setMapOccupation(currentCombatMap, CombatMapManager.CombatMapStatus.FREE);
     }
 
     private void replacePlayerToSpectators(UUID uuid) {
