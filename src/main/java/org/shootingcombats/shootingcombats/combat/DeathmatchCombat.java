@@ -107,6 +107,8 @@ public final class DeathmatchCombat implements Combat {
         return this.currentCombatMap;
     }
 
+
+
     @Override
     public void onKill(UUID killer, UUID killed) {
         combatPlayerData.addKill(killer);
@@ -114,15 +116,36 @@ public final class DeathmatchCombat implements Combat {
 
         Player player = Bukkit.getPlayer(killed);
         if (spectateAfterDeath) {
-            Location deathLocation = player.getLocation();
             replacePlayerToSpectators(killed);
-            player.spigot().respawn();
-            player.teleport(deathLocation);
         } else {
             leaveAsPlayer(killed);
-            player.spigot().respawn();
             player.teleport(lobby.getLobbySpawn());
         }
+
+        String deathMessage = Bukkit.getPlayer(killed).getName() + " killed by " + Bukkit.getPlayer(killer).getName();
+        Util.sendMessage(combatPlayerData.getAlivePlayers(), deathMessage);
+        Util.sendMessage(combatPlayerData.getSpectators(), deathMessage);
+
+        if (checkWinConditions()) {
+            normalStop();
+        }
+    }
+
+    @Override
+    public void onDeath(UUID killed) {
+        combatPlayerData.markPlayerAsKilled(killed);
+
+        Player player = Bukkit.getPlayer(killed);
+        if (spectateAfterDeath) {
+            replacePlayerToSpectators(killed);
+        } else {
+            leaveAsPlayer(killed);
+            player.teleport(lobby.getLobbySpawn());
+        }
+
+        String deathMessage = Bukkit.getPlayer(killed).getName() + " died somehow";
+        Util.sendMessage(combatPlayerData.getAlivePlayers(), deathMessage);
+        Util.sendMessage(combatPlayerData.getSpectators(), deathMessage);
 
         if (checkWinConditions()) {
             normalStop();
