@@ -37,7 +37,7 @@ public final class LobbyLeaveCommand extends AbstractSingleCommand {
                 .findFirst()
                 .orElse(null);
         if (foundLobby == null) {
-            Util.sendMessage(executor, "You are not in any lobby!");
+            Util.sendMessage(executor, "This command can be used only in lobby!");
             return false;
         }
 

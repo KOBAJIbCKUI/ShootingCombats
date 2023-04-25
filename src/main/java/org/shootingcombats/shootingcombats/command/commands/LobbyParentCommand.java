@@ -4,27 +4,24 @@ import org.bukkit.command.CommandSender;
 import org.shootingcombats.shootingcombats.ShootingCombats;
 import org.shootingcombats.shootingcombats.command.abstraction.AbstractParentCommand;
 import org.shootingcombats.shootingcombats.command.abstraction.ICommand;
-import org.shootingcombats.shootingcombats.lobby.Lobby;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.stream.Collectors;
 
 public final class LobbyParentCommand extends AbstractParentCommand {
     public LobbyParentCommand() {
-        super("Lobby", CommandType.WITHOUT_TARGET, "lobby", "sc.lobby", Collections.unmodifiableList(Arrays.asList(
+        super("Lobby", CommandType.WITH_TARGET, "lobby <name>", "sc.lobby", Collections.unmodifiableList(Arrays.asList(
                 new LobbyJoinCommand(),
-                new LobbyLeaveCommand()
+                new LobbyLeaveCommand(),
+                new LobbyInfoCommand()
         )));
     }
 
     @Override
     protected List<String> getTargets(ShootingCombats plugin) {
-        return ShootingCombats.getLobbiesManager().getLobbies().stream()
-                .map(Lobby::getName)
-                .collect(Collectors.toList());
+        return Collections.emptyList();
     }
 
     @Override
