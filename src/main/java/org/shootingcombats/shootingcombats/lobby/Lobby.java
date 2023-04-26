@@ -35,6 +35,7 @@ public interface Lobby {
     Combat getCurrentCombat();
     void startCombat(UUID executor, CombatMap combatMap);
     void stopCombat(UUID executor);
+    void removeCurrentBattle();
     void setPlayerStatus(UUID player, PlayerStatus playerStatus);
     PlayerStatus getPlayerStatus(UUID uuid);
     void dismissLobby(UUID executor);

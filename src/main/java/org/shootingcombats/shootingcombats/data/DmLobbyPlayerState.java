@@ -17,6 +17,8 @@ public class DmLobbyPlayerState implements PlayerState {
     private float saturation;
     private int expLevel;
     private float expPoints;
+    private boolean isInvulnerable;
+    private boolean allowFlight;
     private GameMode gamemode;
     private ItemStack[] storageContents;
     private ItemStack[] extraStorageContents;
@@ -40,6 +42,8 @@ public class DmLobbyPlayerState implements PlayerState {
         this.expLevel = player.getLevel();
         this.expPoints = player.getExp();
         this.health = player.getHealth();
+        this.isInvulnerable = player.isInvulnerable();
+        this.allowFlight = player.getAllowFlight();
         player.setLevel(0);
         player.setExp(0);
 
@@ -62,6 +66,8 @@ public class DmLobbyPlayerState implements PlayerState {
         player.setSaturation(this.saturation);
         player.setGameMode(this.gamemode);
         player.setHealth(this.health);
+        player.setInvulnerable(this.isInvulnerable);
+        player.setAllowFlight(this.allowFlight);
 
         restoreInventory();
 

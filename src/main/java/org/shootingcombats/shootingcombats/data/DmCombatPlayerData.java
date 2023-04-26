@@ -52,7 +52,7 @@ public final class DmCombatPlayerData extends CombatData {
     }
 
     public void addKill(UUID uuid, Integer numberOfKills) {
-        kills.put(uuid, kills.get(uuid) + numberOfKills);
+        kills.put(uuid, kills.getOrDefault(uuid, 0) + 1);
     }
 
     public void addSpectator(UUID uuid) {
@@ -158,7 +158,7 @@ public final class DmCombatPlayerData extends CombatData {
         for (Map.Entry<UUID, Integer> entry : kills.entrySet()) {
             player = Bukkit.getPlayer(entry.getKey());
             player.getInventory().addItem(new ItemStack(Material.DIAMOND, PluginConfig.dmKillReward * entry.getValue()));
-            Util.sendMessage(player, String.format(Messages.YOU_KILLED, entry.getValue(), PluginConfig.dmWinReward * entry.getValue()));
+            Util.sendMessage(player, String.format(Messages.YOU_KILLED, entry.getValue(), PluginConfig.dmKillReward * entry.getValue()));
         }
     }
 

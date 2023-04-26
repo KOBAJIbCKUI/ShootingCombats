@@ -35,7 +35,7 @@ public final class LobbyInfoCommand extends AbstractSingleCommand {
         Util.sendMessage(commandSender, "Lobby name: " + lobby.getName());
         Util.sendMessage(commandSender, "Lobby type: " + lobby.getType());
         Util.sendMessage(commandSender, "Status: " + lobby.getLobbyStatus());
-        Util.sendMessage(commandSender, "Players: " + lobby.getPlayers() + "/" + lobby.getMaxPlayers());
+        Util.sendMessage(commandSender, "Players: " + lobby.getPlayersNumber() + "/" + lobby.getMaxPlayers());
         Util.sendMessage(commandSender, "Settings:");
         for (Map.Entry<String, TypedProperty> entry : lobby.getProperties().entrySet()) {
             Util.sendMessage(commandSender, entry.getKey() + " - " + entry.getValue().getValue(entry.getValue().getValueClass()));

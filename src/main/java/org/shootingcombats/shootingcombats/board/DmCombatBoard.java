@@ -15,8 +15,16 @@ public class DmCombatBoard {
 
         this.deathmatch = this.scoreboard.registerNewTeam("Deathmatch");
         this.spectator = this.scoreboard.registerNewTeam("Spectator");
-        this.deathmatch.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.FOR_OTHER_TEAMS);
+        this.deathmatch.setAllowFriendlyFire(true);
         this.spectator.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.NEVER);
+    }
+
+    public void showNameTags(boolean show) {
+        if (show) {
+            deathmatch.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
+        } else {
+            deathmatch.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.NEVER);
+        }
     }
 
     public void addPlayerToBoard(UUID uuid) {

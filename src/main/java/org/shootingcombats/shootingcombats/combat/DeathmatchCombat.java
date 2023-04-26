@@ -27,10 +27,10 @@ public final class DeathmatchCombat implements Combat {
     private final boolean endgameTags, finalTeleport, spectateAfterDeath;
     private final DmCombatPlayerData combatPlayerData;
     private final DeathmatchLobby lobby;
-    private final BukkitRunnable countdownRunnable, combatRunnable;
     private final DmCombatBoard combatBoard;
     private final DmCombatBar combatBar;
     private final CombatMap currentCombatMap;
+    private final BukkitRunnable countdownRunnable, combatRunnable;
 
     public DeathmatchCombat(DeathmatchLobby lobby, Set<UUID> players, long minutesToEnd, Map<String, TypedProperty> properties, CombatMap combatMap) {
         this(lobby, players, minutesToEnd, properties, combatMap, null);
@@ -38,7 +38,6 @@ public final class DeathmatchCombat implements Combat {
 
     public DeathmatchCombat(DeathmatchLobby lobby, Set<UUID> players, long minutesToEnd, Map<String, TypedProperty> properties, CombatMap combatMap, CombatMap finalCombatMap) {
         this.lobby = lobby;
-        this.currentCombatMap = new SimpleCombatMap(combatMap.getName(), combatMap.getBound());
         this.minutesToEnd = minutesToEnd;
         this.minutesToTags = properties.get("minutes-to-tags").getValue(Integer.class).orElse(PluginConfig.dmMinutesToTags);
         this.minutesToFinalTp = properties.get("minutes-to-final-tp").getValue(Integer.class).orElse(PluginConfig.dmMinutesToFinalTp);
@@ -49,16 +48,23 @@ public final class DeathmatchCombat implements Combat {
         this.combatPlayerData = new DmCombatPlayerData(this);
         this.combatBoard = new DmCombatBoard();
         this.combatBar = new DmCombatBar(minutesToEnd);
-        for (UUID uuid : players) {
-            lobby.prepareForCombat(uuid);
-            combatBoard.addPlayerToBoard(uuid);
-            combatBoard.addPlayer(uuid);
-            combatBar.addPlayerToBar(uuid);
-            combatPlayerData.addPlayer(uuid);
-        }
 
         this.countdownRunnable = new CountdownThread(5);
         this.combatRunnable = new CombatThread(TimeUnit.MINUTES.toSeconds(minutesToTags), TimeUnit.MINUTES.toSeconds(minutesToFinalTp), TimeUnit.MINUTES.toSeconds(minutesToEnd));
+
+        this.currentCombatMap = new SimpleCombatMap(combatMap.getName(), combatMap.getBound());
+        for (Location spawn : combatMap.getSpawns()) {
+            this.currentCombatMap.addSpawn(spawn);
+        }
+        for (UUID uuid : players) {
+            lobby.prepareForCombat(uuid);
+            combatPlayerData.addPlayer(uuid);
+            combatBoard.addPlayerToBoard(uuid);
+            combatBoard.addPlayer(uuid);
+            combatBar.addPlayerToBar(uuid);
+        }
+        combatBoard.showNameTags(false);
+        spawn(players, combatMap.getSpawns());
     }
 
     @Override
@@ -109,12 +115,22 @@ public final class DeathmatchCombat implements Combat {
     }
 
 
-
     @Override
     public void onKill(UUID killer, UUID killed) {
         combatPlayerData.addKill(killer);
         combatPlayerData.markPlayerAsKilled(killed);
 
+        String deathMessage = Bukkit.getPlayer(killed).getName() + " killed by " + Bukkit.getPlayer(killer).getName();
+        Util.sendMessage(killed, deathMessage);
+        Util.sendMessage(combatPlayerData.getAlivePlayers(), deathMessage);
+        Util.sendMessage(combatPlayerData.getSpectators(), deathMessage);
+
+        if (checkWinConditions()) {
+            leaveAsPlayer(killed);
+            normalStop();
+            return;
+        }
+
         Player player = Bukkit.getPlayer(killed);
         if (spectateAfterDeath) {
             replacePlayerToSpectators(killed);
@@ -123,18 +139,21 @@ public final class DeathmatchCombat implements Combat {
             player.teleport(lobby.getLobbySpawn());
         }
 
-        String deathMessage = Bukkit.getPlayer(killed).getName() + " killed by " + Bukkit.getPlayer(killer).getName();
-        Util.sendMessage(combatPlayerData.getAlivePlayers(), deathMessage);
-        Util.sendMessage(combatPlayerData.getSpectators(), deathMessage);
-
-        if (checkWinConditions()) {
-            normalStop();
-        }
     }
 
     @Override
     public void onDeath(UUID killed) {
         combatPlayerData.markPlayerAsKilled(killed);
+        String deathMessage = Bukkit.getPlayer(killed).getName() + " died somehow";
+        Util.sendMessage(killed, deathMessage);
+        Util.sendMessage(combatPlayerData.getAlivePlayers(), deathMessage);
+        Util.sendMessage(combatPlayerData.getSpectators(), deathMessage);
+
+        if (checkWinConditions()) {
+            leaveAsPlayer(killed);
+            normalStop();
+            return;
+        }
 
         Player player = Bukkit.getPlayer(killed);
         if (spectateAfterDeath) {
@@ -144,13 +163,6 @@ public final class DeathmatchCombat implements Combat {
             player.teleport(lobby.getLobbySpawn());
         }
 
-        String deathMessage = Bukkit.getPlayer(killed).getName() + " died somehow";
-        Util.sendMessage(combatPlayerData.getAlivePlayers(), deathMessage);
-        Util.sendMessage(combatPlayerData.getSpectators(), deathMessage);
-
-        if (checkWinConditions()) {
-            normalStop();
-        }
     }
 
     @Override
@@ -182,20 +194,15 @@ public final class DeathmatchCombat implements Combat {
         for (UUID uuid : spectators) {
             leaveAsSpectator(uuid);
         }
+        lobby.removeCurrentBattle();
         ShootingCombats.getMapsManager().setMapOccupation(currentCombatMap, CombatMapManager.CombatMapStatus.FREE);
     }
 
     @Override
     public void normalStop() {
+        stopTasks();
         Set<UUID> players = new HashSet<>(combatPlayerData.getAlivePlayers());
         Set<UUID> spectators = new HashSet<>(combatPlayerData.getSpectators());
-        if (players.size() != 1) {
-            Util.sendTitle(players, Messages.ROUND_DRAW);
-            Util.sendTitle(spectators, Messages.ROUND_DRAW);
-        } else {
-            Util.sendTitle(players, "" + ChatColor.BOLD + ChatColor.RED + players, Messages.BATTLE_WON);
-        }
-        combatPlayerData.rewardPlayers();
 
         for (UUID uuid : players) {
             leaveAsPlayer(uuid);
@@ -203,7 +210,16 @@ public final class DeathmatchCombat implements Combat {
         for (UUID uuid : spectators) {
             leaveAsSpectator(uuid);
         }
+
+        lobby.removeCurrentBattle();
         ShootingCombats.getMapsManager().setMapOccupation(currentCombatMap, CombatMapManager.CombatMapStatus.FREE);
+        if (players.size() != 1) {
+            Util.sendTitle(players, Messages.ROUND_DRAW);
+            Util.sendTitle(spectators, Messages.ROUND_DRAW);
+        } else {
+            combatPlayerData.rewardPlayers();
+            Util.sendTitle(players, "" + ChatColor.BOLD + ChatColor.RED + Bukkit.getPlayer(players.stream().findFirst().get()).getName(), Messages.BATTLE_WON);
+        }
     }
 
     private void replacePlayerToSpectators(UUID uuid) {
@@ -217,7 +233,6 @@ public final class DeathmatchCombat implements Combat {
         spawn(combatPlayerData.getAlivePlayers(), currentCombatMap.getSpawns());
 
         this.countdownRunnable.runTaskTimer(ShootingCombats.getPlugin(), 0, 1 * 20);
-
     }
 
     private void startMainCombat() {
@@ -286,10 +301,10 @@ public final class DeathmatchCombat implements Combat {
         @Override
         public void run() {
             secondsLeft += 1;
-            //shootingBattle.getLobby().getBarData().updateBar(remainingTime - timer);
+            Util.log(secondsLeft + " seconds left");
             if (endgameTags && !tagsShown && secondsLeft >= secondsToTags) {
                 this.tagsShown = true;
-                //Bukkit.getPluginManager().callEvent(new ShowNameTagsEvent(shootingBattle));
+                combatBoard.showNameTags(true);
                 Util.sendMessage(combatPlayerData.getAlivePlayers(), String.format(Messages.MINUTES_TO_END, (secondsToEnd - secondsToTags) / 60));
                 Util.sendMessage(combatPlayerData.getAlivePlayers(), Messages.PLAYERS_VISIBLE);
                 Util.sendMessage(combatPlayerData.getSpectators(), String.format(Messages.MINUTES_TO_END, (secondsToEnd - secondsToTags) / 60));
@@ -299,8 +314,7 @@ public final class DeathmatchCombat implements Combat {
                 finalCombatStarted = true;
                 startFinalCombat();
             }
-            if (secondsLeft >= secondsToFinalCombat) {
-                //shootingBattle.getLobby().getBarData().prepareForGulag(false);
+            if (secondsLeft == secondsToFinalCombat) {
                 Util.sendMessage(combatPlayerData.getAlivePlayers(), String.format(Messages.MINUTES_TO_END, (secondsToEnd - secondsToFinalCombat) / 60));
                 Util.sendMessage(combatPlayerData.getSpectators(), String.format(Messages.MINUTES_TO_END, (secondsToEnd - secondsToFinalCombat) / 60));
             }

@@ -57,7 +57,7 @@ public final class CreateMapCommand extends AbstractSingleCommand {
                     Integer.parseInt(args[4]),
                     Integer.parseInt(args[5]),
                     Integer.parseInt(args[6]));
-        } catch (NullPointerException e) {
+        } catch (NumberFormatException e) {
             sendUsage(commandSender, label);
             return false;
         }
@@ -67,6 +67,7 @@ public final class CreateMapCommand extends AbstractSingleCommand {
             return false;
         }
         mapManager.addMap(new SimpleCombatMap(args[0], bound));
+        ShootingCombats.getMapsConfig().saveToFile();
         Util.sendMessage(executor, "Map " + args[0] + " successfully created!");
         return true;
     }

@@ -42,6 +42,7 @@ public final class MapInfoCommand extends AbstractSingleCommand {
         int index = 1;
         for (Location spawn : combatMap.getSpawns()) {
             Util.sendMessage(commandSender, index + ". {" + spawn.getBlockX() + ", " + spawn.getBlockY() + ", " + spawn.getBlockZ() + "}");
+            index++;
         }
         return true;
     }

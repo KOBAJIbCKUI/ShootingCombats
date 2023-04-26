@@ -3,6 +3,7 @@ package org.shootingcombats.shootingcombats.data;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.shootingcombats.shootingcombats.ShootingCombats;
+import org.shootingcombats.shootingcombats.util.MathHelper;
 import org.shootingcombats.shootingcombats.util.Util;
 
 import java.io.IOException;
@@ -72,11 +73,8 @@ public final class PluginConfig {
         gbMaxMapsNumber = pluginConfig.getInt(currentSection + "max_maps_number");
         gbMaxMapsNumber = gbMaxMapsNumber < 0 ? 16 : gbMaxMapsNumber;
 
-        gbMaxRewardSize = pluginConfig.getInt(currentSection + "max_reward_size");
-        gbMaxRewardSize = gbMaxRewardSize < 0 || gbMaxRewardSize > 64 ? 64 : gbMaxRewardSize;
-
-        gbMaxCombatDurMinutes = pluginConfig.getInt(currentSection + "max_combat_duration_minutes");
-        gbMaxCombatDurMinutes = gbMaxCombatDurMinutes < 0 || gbMaxCombatDurMinutes > 30 ? 15 : gbMaxCombatDurMinutes;
+        gbMaxRewardSize = MathHelper.clump(pluginConfig.getInt(currentSection + "max_reward_size"), 1, 64);
+        gbMaxCombatDurMinutes = MathHelper.clump(pluginConfig.getInt(currentSection + "max_combat_duration_minutes"), 1, 30);
 
         currentSection = currentSection.replace("global.", "deathmatch.default_properties."); //Deathmatch default_properties
 
@@ -84,28 +82,16 @@ public final class PluginConfig {
         dmEndgameTags = pluginConfig.getBoolean(currentSection + "endgame_tags");
         dmFinalTeleport = pluginConfig.getBoolean(currentSection + "final_teleport");
 
-        dmCombatDurMinutes = pluginConfig.getInt(currentSection + "combat_duration_minutes");
-        dmCombatDurMinutes = dmCombatDurMinutes < 1 || dmCombatDurMinutes > gbMaxCombatDurMinutes ? 15 : dmCombatDurMinutes;
-
-        dmMinutesToTags = pluginConfig.getInt(currentSection + "minutes_to_tags");
-        dmMinutesToTags = Math.min(dmMinutesToTags, dmCombatDurMinutes);
-
-        dmMinutesToFinalTp = pluginConfig.getInt(currentSection + "minutes_to_final_tp");
-        dmMinutesToFinalTp = Math.min(dmMinutesToFinalTp, dmCombatDurMinutes);
+        dmCombatDurMinutes = MathHelper.clump(pluginConfig.getInt(currentSection + "combat_duration_minutes"), 1, gbMaxCombatDurMinutes);
+        dmMinutesToTags = Math.min(pluginConfig.getInt(currentSection + "minutes_to_tags"), dmCombatDurMinutes);
+        dmMinutesToFinalTp = Math.min(pluginConfig.getInt(currentSection + "minutes_to_final_tp"), dmCombatDurMinutes);
 
         currentSection = currentSection.replace("default_properties.", "rewards."); //Deathmatch rewards
 
-        dmWinReward = pluginConfig.getInt(currentSection + "win");
-        dmWinReward = dmWinReward < 1 || dmWinReward > gbMaxRewardSize ? Math.min(dmWinReward, gbMaxRewardSize) : dmWinReward;
-
-        dmLooseReward = pluginConfig.getInt(currentSection + "loose");
-        dmLooseReward = dmLooseReward < 1 || dmLooseReward > gbMaxRewardSize ? Math.min(dmLooseReward, gbMaxRewardSize) : dmLooseReward;
-
-        dmKillReward = pluginConfig.getInt(currentSection + "kill");
-        dmKillReward = dmKillReward < 1 || dmKillReward > gbMaxRewardSize ? Math.min(dmKillReward, gbMaxRewardSize) : dmKillReward;
-
-        dmBonus = pluginConfig.getInt("bonus");
-        dmBonus = dmBonus < 1 || dmBonus > gbMaxRewardSize ? Math.min(dmBonus, gbMaxRewardSize) : dmBonus;
+        dmWinReward = MathHelper.clump(pluginConfig.getInt(currentSection + "win"), 1, gbMaxRewardSize);
+        dmLooseReward = MathHelper.clump(pluginConfig.getInt(currentSection + "loose"), 1, gbMaxRewardSize);
+        dmKillReward = MathHelper.clump(pluginConfig.getInt(currentSection + "kill"), 1, gbMaxRewardSize);
+        dmBonus = MathHelper.clump(pluginConfig.getInt(currentSection + "bonus"), 1, gbMaxRewardSize);
         //dmKillstreakLength = config.getInt("killstreak_length", 3);
 
         //currentSection = currentSection.replace("deathmatch.rewards.", ""); //Deathmatch rewards

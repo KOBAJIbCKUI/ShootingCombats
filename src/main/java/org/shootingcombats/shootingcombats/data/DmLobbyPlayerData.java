@@ -1,5 +1,8 @@
 package org.shootingcombats.shootingcombats.data;
 
+import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
+import org.bukkit.entity.Player;
 import org.shootingcombats.shootingcombats.lobby.Lobby;
 
 import java.util.*;
@@ -32,6 +35,10 @@ public final class DmLobbyPlayerData extends LobbyData {
         players.put(uuid, Lobby.PlayerStatus.NA);
         PlayerState playerState = new DmLobbyPlayerState(uuid);
         playerState.store();
+        Player player = Bukkit.getPlayer(uuid);
+        player.setGameMode(GameMode.SURVIVAL);
+        player.setInvulnerable(true);
+        player.setAllowFlight(false);
         playersStates.put(uuid, playerState);
     }
 
@@ -41,7 +48,7 @@ public final class DmLobbyPlayerData extends LobbyData {
     }
 
     public void setPlayerStatus(UUID uuid, Lobby.PlayerStatus playerStatus) {
-        players.computeIfAbsent(uuid, k -> playerStatus);
+        players.computeIfPresent(uuid, (k, v) -> playerStatus);
     }
 
     public Lobby.PlayerStatus getPlayerStatus(UUID uuid) {

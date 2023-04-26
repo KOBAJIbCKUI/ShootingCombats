@@ -35,10 +35,10 @@ deathmatch:
   # By default all rewards are given in diamonds
   rewards:
     # Reward for win
-    win: 8
+    win: 6
     # Reward for loose
     loose: 3
     # Reward for kill
     kill: 3
     # Bonus reward for different extra actions
-    bonus: 5
+    bonus: 3

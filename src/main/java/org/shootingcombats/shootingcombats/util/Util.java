@@ -14,7 +14,7 @@ public final class Util {
     private static final Logger LOGGER = Bukkit.getLogger();
 
     private Util() {
-        throw new AssertionError("Instantiation of utility class");
+        throw new AssertionError("Attempt to make instance of utility class " + getClass());
     }
 
     public static void log(String message) {

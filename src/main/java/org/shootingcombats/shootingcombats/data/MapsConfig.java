@@ -136,9 +136,11 @@ public final class MapsConfig {
 
                     spawnPointsSection = mapSection.getConfigurationSection("spawn_points");
 
-                    for (String index : spawnPointsSection.getKeys(false)) {
-                        spawnPointSection = spawnPointsSection.getConfigurationSection(index);
-                        combatMap.addSpawn(new Location(Bukkit.getWorld(world), spawnPointSection.getInt("x"), spawnPointSection.getInt("y"), spawnPointSection.getInt("z")));
+                    if (spawnPointsSection != null) {
+                        for (String index : spawnPointsSection.getKeys(false)) {
+                            spawnPointSection = spawnPointsSection.getConfigurationSection(index);
+                            combatMap.addSpawn(new Location(Bukkit.getWorld(world), spawnPointSection.getInt("x"), spawnPointSection.getInt("y"), spawnPointSection.getInt("z")));
+                        }
                     }
                     mapsManager.addMap(combatMap);
                     Util.log("Map " + mapName + " has been successfully loaded");

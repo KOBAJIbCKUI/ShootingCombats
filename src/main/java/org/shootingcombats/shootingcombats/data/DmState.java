@@ -5,6 +5,7 @@ import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.scoreboard.Scoreboard;
 import org.shootingcombats.shootingcombats.util.Util;
 
 import java.util.UUID;
@@ -16,6 +17,9 @@ public final class DmState implements PlayerState {
     private float saturation;
     private int expLevel;
     private float expPoints;
+    private boolean isInvulnerable;
+    private boolean allowFlight;
+    private Scoreboard scoreboard;
     private GameMode gamemode;
     private ItemStack[] storageContents;
     private ItemStack[] extraStorageContents;
@@ -33,12 +37,15 @@ public final class DmState implements PlayerState {
             return;
         }
 
+        this.scoreboard = player.getScoreboard();
         this.gamemode = player.getGameMode();
         this.food = player.getFoodLevel();
         this.saturation = player.getSaturation();
         this.expLevel = player.getLevel();
         this.expPoints = player.getExp();
         this.health = player.getHealth();
+        this.isInvulnerable = player.isInvulnerable();
+        this.allowFlight = player.getAllowFlight();
         player.setLevel(0);
         player.setExp(0);
 
@@ -60,7 +67,10 @@ public final class DmState implements PlayerState {
         player.setFoodLevel(this.food);
         player.setSaturation(this.saturation);
         player.setGameMode(this.gamemode);
+        player.setScoreboard(this.scoreboard);
         player.setHealth(this.health);
+        player.setInvulnerable(this.isInvulnerable);
+        player.setAllowFlight(this.allowFlight);
 
         restoreInventory();
 

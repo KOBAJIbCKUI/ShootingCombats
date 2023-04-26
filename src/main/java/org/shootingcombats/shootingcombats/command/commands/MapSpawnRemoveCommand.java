@@ -30,7 +30,7 @@ public final class MapSpawnRemoveCommand extends AbstractSingleCommand {
         }
 
         CombatMapManager mapManager = ShootingCombats.getMapsManager();
-        if (mapManager.containsMap(target)) {
+        if (!mapManager.containsMap(target)) {
             Util.sendMessage(commandSender, "Map with name " + target + " not found!");
             return false;
         }

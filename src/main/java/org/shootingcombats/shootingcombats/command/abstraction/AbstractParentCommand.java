@@ -38,7 +38,13 @@ public abstract class AbstractParentCommand extends AbstractCommand {
             return false;
         }
 
-        return subCommand.execute(plugin, commandSender, target, label, Arrays.copyOfRange(args, commandType.minArgs, args.length));
+        if (commandType == CommandType.WITHOUT_TARGET) {
+            return subCommand.execute(plugin, commandSender, target, label, Arrays.copyOfRange(args, commandType.minArgs, args.length));
+        } else {
+            return subCommand.execute(plugin, commandSender, args[0], label, Arrays.copyOfRange(args, commandType.minArgs, args.length));
+        }
+
+
     }
 
     @Override
@@ -93,42 +99,32 @@ public abstract class AbstractParentCommand extends AbstractCommand {
             }
             case WITHOUT_TARGET: {
                 if (args.length == 0 || (partialArg = args[lastIndex = args.length - 1]).trim().isEmpty() ) {
-                    switch (lastIndex) {
-                        case 0: {
-                            return getChildren().stream()
-                                    .filter(command -> command.hasPermission(commandSender))
-                                    .map(command -> command.getName().toLowerCase(Locale.ROOT))
-                                    .collect(Collectors.toList());
-                        }
-                        case 1: {
-                            return getChildren().stream()
-                                    .filter(command -> command.hasPermission(commandSender))
-                                    .filter(command -> command.getName().equalsIgnoreCase(args[0]))
-                                    .findFirst()
-                                    .map(command -> command.tabComplete(plugin, commandSender, Arrays.copyOfRange(args, 2, args.length)))
-                                    .orElse(Collections.emptyList());
-                        }
-                        default: throw new AssertionError("Reached not reachable code");
-                    }
-                }
-                switch (lastIndex) {
-                    case 0: {
+                    if (lastIndex == 0) {
                         return getChildren().stream()
                                 .filter(command -> command.hasPermission(commandSender))
-                                .filter(command -> command.getName().toLowerCase(Locale.ROOT).startsWith(partialArg.toLowerCase(Locale.ROOT)))
                                 .map(command -> command.getName().toLowerCase(Locale.ROOT))
                                 .collect(Collectors.toList());
                     }
-                    case 1: {
-                        return getChildren().stream()
-                                .filter(command -> command.hasPermission(commandSender))
-                                .filter(command -> command.getName().equalsIgnoreCase(args[0]))
-                                .findFirst()
-                                .map(command -> command.tabComplete(plugin, commandSender, Arrays.copyOfRange(args, 1, args.length)))
-                                .orElse(Collections.emptyList());
-                    }
-                    default: throw new AssertionError("Reached not reachable code");
+                    return getChildren().stream()
+                            .filter(command -> command.hasPermission(commandSender))
+                            .filter(command -> command.getName().equalsIgnoreCase(args[0]))
+                            .findFirst()
+                            .map(command -> command.tabComplete(plugin, commandSender, Arrays.copyOfRange(args, 2, args.length)))
+                            .orElse(Collections.emptyList());
                 }
+                if (lastIndex == 0) {
+                    return getChildren().stream()
+                            .filter(command -> command.hasPermission(commandSender))
+                            .filter(command -> command.getName().toLowerCase(Locale.ROOT).startsWith(partialArg.toLowerCase(Locale.ROOT)))
+                            .map(command -> command.getName().toLowerCase(Locale.ROOT))
+                            .collect(Collectors.toList());
+                }
+                return getChildren().stream()
+                        .filter(command -> command.hasPermission(commandSender))
+                        .filter(command -> command.getName().equalsIgnoreCase(args[0]))
+                        .findFirst()
+                        .map(command -> command.tabComplete(plugin, commandSender, Arrays.copyOfRange(args, 1, args.length)))
+                        .orElse(Collections.emptyList());
             }
             default: throw new AssertionError("Unknown command type: " + this.commandType);
         }

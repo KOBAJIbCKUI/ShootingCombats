@@ -142,10 +142,6 @@ public final class DeathmatchLobby implements Lobby {
         return Optional.ofNullable(lobbyProperties.get(property));
     }
 
-    public Map<String, TypedProperty> getLobbyProperties() {
-        return Collections.unmodifiableMap(lobbyProperties);
-    }
-
     @Override
     public boolean containsProperty(String property) {
         return lobbyProperties.containsKey(property);
@@ -153,7 +149,7 @@ public final class DeathmatchLobby implements Lobby {
 
     @Override
     public Map<String, TypedProperty> getProperties() {
-        return null;
+        return Collections.unmodifiableMap(lobbyProperties);
     }
 
     @Override
@@ -175,6 +171,7 @@ public final class DeathmatchLobby implements Lobby {
         lobbyBoard.addPlayerToBoard(uuid);
         lobbyBar.addPlayerToBar(uuid);
         setPlayerStatus(uuid, PlayerStatus.NOT_READY);
+
         updateLobbyStatus();
         //Util.log(Bukkit.getPlayer(uuid).getName() + " joined lobby " + this.name);
 
@@ -270,7 +267,7 @@ public final class DeathmatchLobby implements Lobby {
 
     @Override
     public void startCombat(UUID executor, CombatMap combatMap) {
-        if (owner.equals(executor)) {
+        if (!owner.equals(executor)) {
             Util.sendMessage(executor, "Only owner of lobby can do this!");
             return;
         }
@@ -281,24 +278,29 @@ public final class DeathmatchLobby implements Lobby {
                     return;
                 }
 
+                if (lobbyPlayerData.getPlayerNumber() < 2) {
+                    Util.sendMessage(executor, "Unable to start a combat!");
+                    Util.sendMessage(executor, "Too few players!");
+                    return;
+                }
+
                 for (UUID uuid : lobbyPlayerData.getPlayers()) {
                     setPlayerStatus(uuid, PlayerStatus.IN_COMBAT);
                 }
-                Util.sendMessage(owner, "You successfully started the combat");
+                Util.sendMessage(executor, "You successfully started the combat");
 
                 this.currentCombat = new DeathmatchCombat(this, lobbyPlayerData.getPlayers(), combatDurationMinutes, lobbyProperties, combatMap);
                 currentCombat.start();
-                break;
+                return;
             }
             case RUNNING: {
-                Util.sendMessage(owner, "Unable to start a combat!");
-                Util.sendMessage(owner, "Lobby is already in combat!");
-                break;
+                Util.sendMessage(executor, "Unable to start a combat!");
+                Util.sendMessage(executor, "Lobby is already in combat!");
+                return;
             }
             case NOT_READY: {
-                Util.sendMessage(owner, "Unable to start a combat!");
-                Util.sendMessage(owner, "Not all players are READY!");
-                break;
+                Util.sendMessage(executor, "Unable to start a combat!");
+                Util.sendMessage(executor, "Not all players are READY!");
             }
         }
     }
@@ -318,6 +320,11 @@ public final class DeathmatchLobby implements Lobby {
     }
 
     @Override
+    public void removeCurrentBattle() {
+        this.currentCombat = null;
+    }
+
+    @Override
     public void setPlayerStatus(UUID player, PlayerStatus playerStatus) {
         lobbyPlayerData.setPlayerStatus(player, playerStatus);
         lobbyBoard.setPlayerStatus(player, playerStatus);
@@ -330,17 +337,11 @@ public final class DeathmatchLobby implements Lobby {
     }
 
     public void prepareForCombat(UUID uuid) {
-        if (currentCombat == null) {
-            return;
-        }
         setPlayerStatus(uuid, PlayerStatus.IN_COMBAT);
         lobbyBar.removePlayerFromBar(uuid);
     }
 
     public void unprepareFromCombat(UUID uuid) {
-        if (currentCombat == null) {
-            return;
-        }
         setPlayerStatus(uuid, PlayerStatus.NOT_READY);
         lobbyBar.addPlayerToBar(uuid);
     }

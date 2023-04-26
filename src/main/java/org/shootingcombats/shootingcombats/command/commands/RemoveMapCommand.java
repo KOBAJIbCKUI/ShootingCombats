@@ -42,6 +42,7 @@ public final class RemoveMapCommand extends AbstractSingleCommand {
         }
 
         mapManager.removeMap(args[0]);
+        ShootingCombats.getMapsConfig().saveToFile();
         Util.sendMessage(executor, "Map " + args[0] + " successfully removed!");
 
         return true;

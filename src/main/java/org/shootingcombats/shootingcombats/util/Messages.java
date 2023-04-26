@@ -4,6 +4,10 @@ import org.bukkit.ChatColor;
 
 public final class Messages {
 
+    private Messages () {
+        throw new AssertionError("Attempt to make instance of utility class " + getClass());
+    }
+
     //Strings answers
     public static final String BATTLE_STARTS_IN = "" + ChatColor.GOLD + ChatColor.BOLD + "Combat starts in " + ChatColor.RED + ChatColor.BOLD +  "%d" + ChatColor.GOLD + ChatColor.BOLD + " seconds!";
     public static final String BATTLE_HAS_BEGUN = "" + ChatColor.RED + ChatColor.BOLD + "Combat has begun!";

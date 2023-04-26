@@ -7,6 +7,8 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.shootingcombats.shootingcombats.data.MapsConfig;
 import org.shootingcombats.shootingcombats.data.PluginConfig;
+import org.shootingcombats.shootingcombats.listeners.CombatListener;
+import org.shootingcombats.shootingcombats.listeners.MapListener;
 import org.shootingcombats.shootingcombats.manager.*;
 import org.shootingcombats.shootingcombats.util.Util;
 
@@ -40,6 +42,7 @@ public final class ShootingCombats extends JavaPlugin {
         lobbiesManager = new SimpleLobbiesManager();
 
         registerCommands();
+        registerListeners();
         addCommandPermissions();
 
         Util.log("Plugin enabled");
@@ -47,8 +50,8 @@ public final class ShootingCombats extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        pluginConfig.saveConfig();
-        mapsConfig.saveConfig();
+        pluginConfig.saveConfigToFile();
+        mapsConfig.saveToFile();
         Util.log("Plugin disabled");
     }
 
@@ -60,6 +63,12 @@ public final class ShootingCombats extends JavaPlugin {
         }
         commandManager = new PluginCommandExecutor(plugin, mainCommand);
         commandManager.register();
+    }
+
+    private void registerListeners() {
+        PluginManager pluginManager = this.getServer().getPluginManager();
+        pluginManager.registerEvents(new CombatListener(plugin), plugin);
+        pluginManager.registerEvents(new MapListener(plugin), plugin);
     }
 
     private void addCommandPermissions() {

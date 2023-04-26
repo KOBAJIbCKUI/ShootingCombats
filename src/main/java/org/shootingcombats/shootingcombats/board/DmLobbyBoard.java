@@ -56,9 +56,9 @@ public final class DmLobbyBoard {
     }
 
     public void setPlayerStatus(UUID uuid, Lobby.PlayerStatus playerStatus) {
-        if (!scoreboard.getEntries().contains(Bukkit.getPlayer(uuid).getName())) {
-            return;
-        }
+//        if (!scoreboard.getEntries().contains(Bukkit.getPlayer(uuid).getName())) {
+//            return;
+//        }
         switch (playerStatus) {
             case READY: {
                 ready.addEntry(Bukkit.getPlayer(uuid).getName());
